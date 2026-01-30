@@ -1,70 +1,39 @@
+<script setup>
+import { ChevronRight } from 'lucide-vue-next'
+</script>
+
 <template>
-  <div class="space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <p class="text-sm text-slate-500 font-medium">Learning Progress</p>
-        <div class="mt-2 flex items-end justify-between">
-          <h3 class="text-2xl font-bold text-slate-800">75%</h3>
-          <span class="text-green-500 text-sm font-medium">↑ 12% this week</span>
+  <div class="w-80 space-y-6">
+    <div class="bg-white p-6 rounded-[32px] text-center shadow-sm">
+      <div class="relative inline-block">
+        <div class="w-24 h-24 bg-blue-100 rounded-full mx-auto overflow-hidden">
+          <img src="https://api.dicebear.com/7.x/bottts/svg?seed=user" alt="Avatar" />
         </div>
-        <div class="w-full bg-slate-100 h-2 rounded-full mt-4">
-          <div class="bg-blue-600 h-2 rounded-full" style="width: 75%"></div>
-        </div>
+        <div class="absolute -bottom-2 -right-2 bg-blue-500 text-white text-[10px] font-bold px-2 py-1 rounded-lg">Level 7</div>
       </div>
-
-      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <div class="flex justify-between items-start">
-          <p class="text-sm text-slate-500 font-medium">Stressmeter</p>
-          <span class="px-2 py-1 bg-orange-100 text-orange-600 text-xs rounded-lg font-bold">Action Needed</span>
+      <h4 class="mt-4 font-bold text-slate-800">Future Protector</h4>
+      <div class="mt-4 flex items-center justify-between border-t pt-4">
+        <div class="text-left">
+          <p class="text-[10px] text-slate-400 font-bold uppercase">Points</p>
+          <p class="text-xl font-black text-slate-800">1250</p>
         </div>
-        <div class="mt-4 flex flex-col items-center">
-          <input type="range" class="w-full h-2 bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 rounded-lg appearance-none cursor-pointer">
-          <p class="mt-2 text-xs text-slate-400 italic">"Try a 5-minute breathing exercise"</p>
-        </div>
-      </div>
-
-      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <p class="text-sm text-slate-500 font-medium">Badges Earned</p>
-        <div class="mt-3 flex -space-x-2">
-          <div v-for="i in 4" :key="i" class="w-10 h-10 rounded-full border-2 border-white bg-blue-100 flex items-center justify-center text-lg">
-            🏅
-          </div>
-          <div class="w-10 h-10 rounded-full border-2 border-white bg-slate-50 flex items-center justify-center text-xs text-slate-400 font-bold">
-            +2
-          </div>
-        </div>
+        <button class="bg-[#4C4082] text-white text-[10px] font-bold px-4 py-2 rounded-xl">Get Advice</button>
       </div>
     </div>
 
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-red-100">
-      <div class="flex items-center space-x-2 mb-4">
-        <span class="text-red-500">🛡️</span>
-        <h3 class="font-bold text-slate-800">AI-Powered Risk Alerts</h3>
-      </div>
-      <div class="space-y-3">
-        <div class="flex items-center justify-between p-4 bg-red-50 rounded-xl border border-red-100">
-          <div class="flex items-center space-x-3">
-            <span class="w-2 h-2 bg-red-500 rounded-full"></span>
-            <p class="text-sm text-red-800 font-medium text-left">Potential high-stress behavior pattern detected in Module 3.</p>
-          </div>
-          <button class="text-xs font-bold text-red-600 uppercase tracking-wider">Review</button>
+    <div class="bg-white p-6 rounded-[32px] shadow-sm">
+      <p class="text-center text-xs font-bold text-slate-400 uppercase mb-4 tracking-widest">Stressmeter</p>
+      <div class="relative h-32 flex items-center justify-center">
+        <div class="absolute inset-0 border-[16px] border-slate-100 rounded-t-full border-b-0"></div>
+        <div class="absolute inset-0 border-[16px] border-[#00D4FF] rounded-t-full border-b-0" style="clip-path: inset(0 50% 0 0)"></div>
+        <div class="text-center z-10">
+          <p class="text-xs font-bold text-slate-600 leading-none">Feeling</p>
+          <p class="text-lg font-black text-blue-500 italic">Calm</p>
         </div>
       </div>
-    </div>
-
-    <div>
-      <h3 class="font-bold text-slate-800 mb-4">Continue Learning</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="group p-4 bg-white rounded-xl border border-slate-100 hover:border-blue-300 transition cursor-pointer text-left">
-          <div class="flex justify-between items-start">
-            <div>
-              <p class="text-xs font-bold text-blue-600 uppercase mb-1">Sex Education</p>
-              <h4 class="font-bold text-slate-800">Understanding Boundaries</h4>
-            </div>
-            <span class="text-slate-300 group-hover:text-blue-500 transition">→</span>
-          </div>
-        </div>
-      </div>
+      <button class="w-full mt-4 bg-blue-50 text-blue-600 text-[10px] font-black py-3 rounded-2xl hover:bg-blue-100 transition uppercase tracking-widest">
+        Take a deep breath!
+      </button>
     </div>
   </div>
 </template>

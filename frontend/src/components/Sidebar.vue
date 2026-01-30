@@ -1,35 +1,29 @@
+<script setup>
+import { BookOpen, Bell, BrainCircuit, Sun, Search } from 'lucide-vue-next'
+</script>
+
 <template>
-  <aside class="fixed left-0 top-0 h-screen w-64 bg-slate-900 text-white p-6 hidden md:block">
-    <div class="mb-8">
-      <h1 class="text-2xl font-bold text-blue-400">ProtectEd</h1>
-      <p class="text-xs text-slate-400 uppercase tracking-widest mt-1">Platform for GAD</p>
+  <aside class="fixed left-0 top-0 h-screen w-20 md:w-64 bg-[#4C4082] text-white flex flex-col items-center py-6">
+    <div class="mb-10 flex items-center space-x-2 px-4">
+      <div class="bg-[#00D4FF] p-1.5 rounded-lg">
+        <ShieldAlert class="w-6 h-6 text-[#4C4082]" />
+      </div>
+      <h1 class="hidden md:block text-xl font-bold tracking-tight">ProtectEd</h1>
     </div>
 
-    <nav class="space-y-2">
-      <a href="#" class="flex items-center space-x-3 p-3 rounded-lg bg-blue-600">
-        <span>🏠</span>
-        <span>Dashboard</span>
+    <nav class="flex-1 w-full space-y-4 px-2">
+      <a href="#" class="group flex flex-col md:flex-row items-center md:space-x-4 p-3 rounded-xl bg-white/10 border-r-4 border-[#00D4FF]">
+        <Bell class="w-6 h-6 text-[#00D4FF]" />
+        <span class="hidden md:block text-sm font-medium">Learning Modules</span>
       </a>
-      <a href="#" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-800 transition">
-        <span>📚</span>
-        <span>Learning Hub</span>
+      <a href="#" class="group flex flex-col md:flex-row items-center md:space-x-4 p-3 rounded-xl hover:bg-white/5 transition">
+        <BrainCircuit class="w-6 h-6 text-slate-300" />
+        <span class="hidden md:block text-sm font-medium">AI Insights</span>
       </a>
-      <a href="#" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-800 transition">
-        <span>📊</span>
-        <span>Analytics</span>
-      </a>
-      <a href="#" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-800 transition">
-        <span>🛡️</span>
-        <span>VAWC Alerts</span>
+      <a href="#" class="group flex flex-col md:flex-row items-center md:space-x-4 p-3 rounded-xl hover:bg-white/5 transition">
+        <Sun class="w-6 h-6 text-slate-300" />
+        <span class="hidden md:block text-sm font-medium">Resources</span>
       </a>
     </nav>
-
-    <div class="absolute bottom-10 left-6 right-6 p-4 bg-slate-800 rounded-xl border border-slate-700">
-      <p class="text-xs text-slate-400 mb-2">User Status</p>
-      <div class="flex items-center space-x-2">
-        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-        <span class="text-sm font-medium">Verified Learner</span>
-      </div>
-    </div>
   </aside>
 </template>
