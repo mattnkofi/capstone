@@ -1,1 +1,14 @@
 @import "tailwindcss";
+
+@theme {
+  --color-brand-purple: #4C4082;
+  --color-brand-cyan: #00D4FF;
+  --color-brand-pink: #FF7EB3;
+}
+
+body {
+  margin: 0;
+  background-color: #F0F4FF;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}

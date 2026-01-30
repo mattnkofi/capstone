@@ -1,28 +1,38 @@
-<template>
-  <div class="relative w-full h-[600px] bg-[#F0F4FF] rounded-[40px] overflow-hidden shadow-inner p-10">
-    <div class="absolute inset-0 flex items-center justify-center">
-      <div class="absolute top-10 right-40 group cursor-pointer">
-        <div class="bg-[#00D4FF] p-1 rounded-full shadow-lg group-hover:scale-110 transition">
-          <img src="https://api.dicebear.com/7.x/bottts/svg?seed=module1" class="w-16 h-16" />
-        </div>
-        <div class="mt-2 bg-white px-3 py-1 rounded-full shadow-sm">
-          <p class="text-[10px] font-bold text-slate-600">Module 1: GAD Basics</p>
-        </div>
-      </div>
+<script setup>
+import { onMounted, ref } from 'vue';
+import api from '../services/api';
 
-      <div class="absolute bottom-20 left-20 group cursor-pointer">
-        <div class="bg-[#FF7EB3] p-1 rounded-full shadow-lg group-hover:scale-110 transition border-4 border-white">
-          <img src="https://api.dicebear.com/7.x/bottts/svg?seed=vawc" class="w-16 h-16" />
+const modules = ref([]);
+
+onMounted(async () => {
+  try {
+    const response = await api.getLearningPath(1); // Hardcoded user ID for demo
+    modules.value = response.data;
+  } catch (error) {
+    console.error("Database connection failed:", error);
+  }
+});
+</script>
+
+<template>
+  <div class="relative w-full h-[700px] bg-white/40 rounded-[50px] border-b-8 border-slate-200 overflow-hidden shadow-inner flex items-center justify-center">
+    <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-10">
+      <path d="M200,100 C400,100 500,300 600,400 S300,600 400,700" fill="none" stroke="#4C4082" stroke-width="80" stroke-linecap="round" />
+    </svg>
+
+    <div v-for="m in modules" :key="m.id" :style="{ top: m.top, left: m.left }" class="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer text-center">
+      <div :class="[m.color, 'w-24 h-24 rounded-full p-1 border-8 border-white shadow-2xl transition-all group-hover:scale-110 group-hover:-translate-y-3 relative']">
+        <img :src="`https://api.dicebear.com/${m.bot}/svg?seed=${m.id}`" class="w-full h-full" />
+        <div v-if="m.status === 'completed'" class="absolute -top-2 -right-2 bg-green-500 rounded-full p-1 border-2 border-white animate-bounce">
+          <CheckCircle2 class="w-4 h-4 text-white" />
         </div>
-        <div class="mt-2 bg-white px-3 py-1 rounded-full shadow-sm flex items-center space-x-1">
-          <span class="text-green-500 text-[10px]">✔</span>
-          <p class="text-[10px] font-bold text-slate-600">VAWC Prevention</p>
+        <div v-if="m.status === 'locked'" class="absolute inset-0 bg-slate-900/40 rounded-full flex items-center justify-center">
+          <Lock class="w-6 h-6 text-white" />
         </div>
       </div>
-      
-      <svg class="absolute inset-0 w-full h-full pointer-events-none">
-        <path d="M600,80 Q450,150 400,300 T150,500" fill="none" stroke="#A5B4FC" stroke-width="40" stroke-linecap="round" opacity="0.4" />
-      </svg>
+      <div class="mt-4 bg-brand-purple text-white px-4 py-1 rounded-full text-[10px] font-black uppercase shadow-lg inline-block whitespace-nowrap">
+        {{ m.title }}
+      </div>
     </div>
   </div>
 </template>

@@ -1,29 +1,49 @@
 <script setup>
+import { ref } from 'vue'
 import Sidebar from './components/Sidebar.vue'
-import Dashboard from './views/Dashboard.vue' // We will create this next
+import LearningPath from './components/LearningPath.vue'
+import StressMeter from './components/StressMeter.vue'
+import AnalyticsView from './views/AnalyticsView.vue'
+import LoginView from './views/LoginView.vue'
+
+const isAuthenticated = ref(false)
+const currentView = ref('learner')
+
+const onLogin = (selectedRole) => {
+  currentView.value = selectedRole
+  isAuthenticated.value = true
+}
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 flex">
-    <Sidebar />
+  <div v-if="!isAuthenticated">
+    <LoginView @login="onLogin" />
+  </div>
 
-    <main class="flex-1 md:ml-64 p-8">
-      <header class="flex justify-between items-center mb-8">
+  <div v-else class="flex min-h-screen bg-[#F0F4FF]">
+    <Sidebar />
+    <main class="flex-1 ml-20 md:ml-64 p-6 md:p-12">
+      <header class="flex justify-between items-center mb-10">
         <div>
-          <h2 class="text-3xl font-bold text-slate-800">Welcome back, User!</h2>
-          <p class="text-slate-500">Track your progress and learning path here.</p>
-        </div>
-        
-        <div class="bg-white shadow-sm border p-3 rounded-2xl flex items-center space-x-3">
-          <span class="text-xl">🏆</span>
-          <div>
-            <p class="text-xs text-slate-400 leading-none">Total Points</p>
-            <p class="text-lg font-bold text-slate-800">1,250</p>
-          </div>
+          <h2 class="text-4xl font-black text-brand-purple tracking-tighter uppercase">
+            {{ currentView === 'learner' ? 'Hello, Protector!' : 'System Insights' }}
+          </h2>
+          <p class="text-slate-500 text-sm font-bold uppercase tracking-widest">Mindoro State University • ProtectEd</p>
         </div>
       </header>
 
-      <Dashboard />
+      <div v-if="currentView === 'learner'" class="flex flex-col lg:flex-row gap-10 animate-in slide-in-from-bottom duration-700">
+        <div class="flex-1">
+          <LearningPath />
+        </div>
+        <div class="w-full lg:w-96">
+          <StressMeter />
+        </div>
+      </div>
+
+      <div v-else class="animate-in slide-in-from-right duration-700">
+        <AnalyticsView />
+      </div>
     </main>
   </div>
 </template>
