@@ -1,12 +1,25 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { CheckCircle2, Lock, Flame, Wind, Bird, Trees } from 'lucide-vue-next'
+import { ref, onMounted, computed } from 'vue'
+import { CheckCircle2, Lock, Flame, Maximize2, Minimize2, Trees, Flower2, Cloud } from 'lucide-vue-next'
 import api from '../services/api'
 
 const modules = ref([])
 const userId = ref(1)
+const isFullscreen = ref(false)
+const containerRef = ref(null)
 
-const palette = ['bg-rose-500', 'bg-indigo-600', 'bg-emerald-500', 'bg-amber-500', 'bg-fuchsia-600']
+// Vibrant palette for all ages
+const palette = ['bg-[#FF6B6B]', 'bg-[#4D96FF]', 'bg-[#6BCB77]', 'bg-[#FFD93D]', 'bg-[#9333ea]']
+
+const toggleFullscreen = () => {
+  if (!document.fullscreenElement) {
+    containerRef.value.requestFullscreen()
+    isFullscreen.value = true
+  } else {
+    document.exitFullscreen()
+    isFullscreen.value = false
+  }
+}
 
 const loadPath = async () => {
   try {
@@ -16,10 +29,8 @@ const loadPath = async () => {
       return {
         ...mod,
         color: palette[index % palette.length],
-        top: `${15 + (index * 22)}%`, 
-        left: isRight ? '70%' : '30%',
-        scale: 0.9 + (Math.random() * 0.2),
-        rotate: (Math.random() - 0.5) * 10
+        top: `${200 + (index * 250)}px`, 
+        left: isRight ? '65%' : '35%',
       }
     })
   } catch (error) {
@@ -27,127 +38,105 @@ const loadPath = async () => {
   }
 }
 
-onMounted(loadPath)
+// Updated path: A more organic, winding trail
+const dynamicPath = computed(() => {
+  if (modules.value.length === 0) return ''
+  let d = "M 400 50 "
+  modules.value.forEach((mod, i) => {
+    if (i === 0) return
+    const prevY = 200 + (i - 1) * 250
+    const currY = 200 + i * 250
+    d += (i % 2 !== 0) 
+      ? `C 750 ${prevY}, 750 ${currY}, 400 ${currY} ` 
+      : `C 50 ${prevY}, 50 ${currY}, 400 ${currY} `
+  })
+  return d
+})
+
+onMounted(() => {
+  loadPath()
+  document.addEventListener('fullscreenchange', () => {
+    isFullscreen.value = !!document.fullscreenElement
+  })
+})
 </script>
 
 <template>
-  <div class="relative w-full h-[850px] bg-[#1a1c2c] overflow-hidden border-[10px] border-slate-900 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-    
-    <div class="absolute inset-0 bg-grid-dark opacity-20"></div>
-    <div class="absolute inset-0 overflow-hidden pointer-events-none">
-      <div v-for="i in 6" :key="i" 
-           class="absolute bg-white/10 rounded-full blur-xl animate-drift"
-           :style="{ 
-             width: Math.random() * 80 + 'px', 
-             height: Math.random() * 80 + 'px', 
-             top: Math.random() * 100 + '%', 
-             left: Math.random() * 100 + '%',
-             animationDuration: (15 + Math.random() * 10) + 's' 
-           }">
-      </div>
-    </div>
+  <div 
+    ref="containerRef"
+    class="relative w-full h-[850px] bg-[#87CEEB] overflow-y-auto overflow-x-hidden border-[12px] border-[#0F172A] rounded-[5rem] shadow-2xl custom-scrollbar"
+  >
+    <button @click="toggleFullscreen" class="fixed top-8 right-8 z-50 p-4 bg-white rounded-full border-4 border-[#0F172A] text-[#0F172A] shadow-[0_6px_0_0_#0F172A] hover:translate-y-1 hover:shadow-none transition-all">
+      <Maximize2 v-if="!isFullscreen" class="w-6 h-6" />
+      <Minimize2 v-else class="w-6 h-6" />
+    </button>
 
-    <div class="absolute inset-0 pointer-events-none">
-       <Bird class="absolute top-20 left-10 text-white/20 animate-fly-across w-6 h-6" />
-       <Bird class="absolute top-1/2 right-10 text-white/20 animate-fly-across w-5 h-5" style="animation-delay: -5s" />
-       <Wind class="absolute top-[30%] left-[45%] text-indigo-400/30 w-16 h-16 rotate-12" />
-       <Trees class="absolute bottom-10 left-[10%] text-emerald-900/40 w-12 h-12" />
-    </div>
-
-    <svg class="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-      <path 
-        d="M 300 100 C 800 100, 800 350, 500 350 S 200 600, 500 600 S 800 850, 500 850" 
-        fill="none" 
-        stroke="#000" 
-        stroke-width="70" 
-        stroke-linecap="round" 
-      />
-      <path 
-        d="M 300 100 C 800 100, 800 350, 500 350 S 200 600, 500 600 S 800 850, 500 850" 
-        fill="none" 
-        stroke="#2d314d" 
-        stroke-width="55" 
-        stroke-linecap="round" 
-      />
-      <path 
-        class="path-flow"
-        d="M 300 100 C 800 100, 800 350, 500 350 S 200 600, 500 600 S 800 850, 500 850" 
-        fill="none" 
-        stroke="rgba(255,255,255,0.1)" 
-        stroke-width="20" 
-        stroke-dasharray="2 30" 
-        stroke-linecap="round" 
-      />
-    </svg>
-
-    <div v-for="mod in modules" :key="mod.id" 
-         :style="{ top: mod.top, left: mod.left, transform: `translate(-50%, -50%) scale(${mod.scale}) rotate(${mod.rotate}deg)` }"
-         class="absolute flex flex-col items-center group cursor-pointer z-10 transition-transform hover:scale-110">
+    <div class="relative" :style="{ height: (modules.length * 250) + 400 + 'px' }">
       
-      <div :class="[
-        mod.color, 
-        'w-20 h-20 rounded-[1.5rem] border-[5px] border-slate-900 shadow-[0_10px_0_0_#000] relative overflow-visible',
-        mod.status === 'current' ? 'ring-offset-2 ring-offset-[#1a1c2c] ring-2 ring-white animate-pulse-fast' : ''
-      ]">
+      <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <Cloud class="absolute text-white top-10 left-[-100px] w-24 h-24 animate-float-slow opacity-90" />
+        <Cloud class="absolute text-white top-60 right-[-100px] w-20 h-20 animate-float-fast opacity-70" />
+        <Cloud class="absolute text-white top-[500px] left-[-120px] w-28 h-28 animate-float-slow opacity-80" />
         
-        <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 rounded-[1.2rem] transition-opacity"></div>
+        <div v-for="n in 8" :key="'tree-'+n" class="absolute" 
+             :style="{ top: (n * 300) + 'px', left: (n % 2 === 0 ? '5%' : '85%') }">
+          <Trees class="text-[#2D5A27] w-12 h-12 opacity-40" />
+        </div>
         
-        <div class="w-full h-full flex items-center justify-center">
-          <img :src="`https://api.dicebear.com/7.x/bottts/svg?seed=${mod.id}`" 
-               :class="['w-10 h-10 relative z-10 drop-shadow-[0_3px_3px_rgba(0,0,0,0.5)]', 
-                        mod.status === 'locked' ? 'grayscale brightness-[0.3]' : '']" />
-          
-          <div v-if="mod.status === 'locked'" class="absolute inset-0 flex items-center justify-center bg-black/40 rounded-[1.2rem] z-20">
-            <Lock class="text-white/50 w-7 h-7" />
-          </div>
-
-          <div v-if="mod.status === 'current'" class="absolute -top-4 -left-1 z-0">
-             <Flame class="text-orange-500 fill-orange-500 w-7 h-7 animate-bounce" />
-          </div>
+        <div v-for="n in 15" :key="'flower-'+n" class="absolute" 
+             :style="{ top: (n * 150) + 'px', left: (Math.random() * 90) + '%' }">
+          <Flower2 class="text-[#F472B6] w-6 h-6 opacity-30 animate-sway" 
+                   :style="{ animationDelay: (n * 0.5) + 's' }" />
         </div>
       </div>
 
-      <div class="mt-4 bg-slate-900 text-white border-2 border-slate-700 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-[0.1em] shadow-[5px_5px_0_0_rgba(0,0,0,0.4)] relative">
-        <div v-if="mod.status === 'completed'" class="absolute -right-2 -top-2 bg-emerald-500 p-0.5 rounded-full border-2 border-slate-900">
-           <CheckCircle2 class="w-3 h-3 text-white" />
+      <svg class="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+        <path :d="dynamicPath" fill="none" stroke="#78350F" stroke-width="95" stroke-linecap="round" class="opacity-20" />
+        <path :d="dynamicPath" fill="none" stroke="#0F172A" stroke-width="85" stroke-linecap="round" />
+        <path :d="dynamicPath" fill="none" stroke="#D1D5DB" stroke-width="65" stroke-linecap="round" />
+        <path :d="dynamicPath" fill="none" stroke="white" stroke-width="4" stroke-dasharray="10 20" stroke-linecap="round" class="opacity-30" />
+      </svg>
+
+      <div v-for="(mod, index) in modules" :key="mod.id" 
+           :style="{ top: mod.top, left: mod.left }"
+           class="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group z-10">
+        
+        <div :class="[mod.color, 'w-24 h-24 rounded-full border-[6px] border-[#0F172A] shadow-[0_12px_0_0_#0F172A] flex items-center justify-center relative transition-all group-hover:scale-110 group-hover:-translate-y-2 active:translate-y-2 active:shadow-none']">
+          <img :src="`https://api.dicebear.com/7.x/bottts/svg?seed=${mod.id}`" 
+               class="w-14 h-14 relative z-10" />
+          
+          <div v-if="mod.status === 'locked'" class="absolute inset-0 bg-white/10 rounded-full flex items-center justify-center z-20">
+            <Lock class="text-[#0F172A] w-10 h-10 opacity-70" />
+          </div>
+          
+          <div v-if="mod.status === 'current'" class="absolute -top-6">
+             <Flame class="text-[#F59E0B] fill-[#F59E0B] w-10 h-10 animate-bounce" />
+          </div>
         </div>
-        {{ mod.title }}
+
+        <div class="mt-6 bg-white border-4 border-[#0F172A] px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-[#0F172A] shadow-[0_6px_0_0_#0F172A] flex items-center gap-2">
+          <CheckCircle2 v-if="mod.status === 'completed'" class="w-4 h-4 text-[#10B981]" />
+          {{ mod.title }}
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.bg-grid-dark {
-  background-image: linear-gradient(to right, #ffffff05 1px, transparent 1px),
-                    linear-gradient(to bottom, #ffffff05 1px, transparent 1px);
-  background-size: 40px 40px;
-}
+.custom-scrollbar::-webkit-scrollbar { width: 12px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #0F172A; border-radius: 50px; border: 3px solid #E0F2FE; }
 
-@keyframes drift {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(15px, 15px); }
+@keyframes float {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(calc(100vw + 200px)); }
 }
+.animate-float-slow { animation: float 40s linear infinite; }
+.animate-float-fast { animation: float 28s linear infinite; animation-delay: -5s; }
 
-@keyframes fly-across {
-  0% { transform: translateX(-100px) translateY(0); opacity: 0; }
-  10% { opacity: 0.2; }
-  90% { opacity: 0.2; }
-  100% { transform: translateX(1100px) translateY(-40px); opacity: 0; }
+@keyframes sway {
+  0%, 100% { transform: rotate(-10deg); }
+  50% { transform: rotate(10deg); }
 }
-.animate-fly-across { animation: fly-across 12s linear infinite; }
-
-@keyframes pulse-fast {
-  0%, 100% { box-shadow: 0 10px 0 0 #000, 0 0 0px rgba(255,255,255,0); }
-  50% { box-shadow: 0 10px 0 0 #000, 0 0 20px rgba(255,255,255,0.4); }
-}
-.animate-pulse-fast { animation: pulse-fast 1.5s infinite; }
-
-.path-flow {
-  stroke-dashoffset: 1000;
-  animation: flow 40s linear infinite;
-}
-@keyframes flow { to { stroke-dashoffset: 0; } }
-
-.custom-scrollbar::-webkit-scrollbar { width: 0px; }
+.animate-sway { animation: sway 3s ease-in-out infinite; }
 </style>
