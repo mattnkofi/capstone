@@ -7,14 +7,43 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Database connection pool using your .env settings
 const db = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
-  database: 'protected_db'
+  database: process.env.DB_NAME || 'protected_db',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-// --- RESOURCE MANAGEMENT (CRUD) ---
+// --- LEARNER ROUTES ---
+
+// Fetch real learning path by joining modules and user_progress
+app.get('/api/learner/path/:userId', (req, res) => {
+  const sql = `
+    SELECT m.id, m.title, m.category, m.difficulty_level, p.status 
+    FROM modules m 
+    LEFT JOIN user_progress p ON m.id = p.module_id AND p.user_id = ? 
+    ORDER BY m.id ASC`;
+  db.query(sql, [req.params.userId], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+// Log stress data directly to the stress_logs table
+app.post('/api/wellness/stress', (req, res) => {
+  const { userId, value, tip } = req.body;
+  const sql = "INSERT INTO stress_logs (user_id, stress_value, regulation_tip_shown) VALUES (?, ?, ?)";
+  db.query(sql, [userId, value, tip], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: "Stress logged successfully" });
+  });
+});
+
+// Fetch resources from the resources table
 app.get('/api/resources', (req, res) => {
   db.query("SELECT * FROM resources", (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -22,71 +51,5 @@ app.get('/api/resources', (req, res) => {
   });
 });
 
-app.post('/api/admin/resources', (req, res) => {
-  const { title, category, resource_type, content_url, target_age_group } = req.body;
-  const sql = "INSERT INTO resources (title, category, resource_type, content_url, target_age_group) VALUES (?, ?, ?, ?, ?)";
-  db.query(sql, [title, category, resource_type, content_url, target_age_group], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: "Resource added", id: result.insertId });
-  });
-});
-
-app.delete('/api/admin/resources/:id', (req, res) => {
-  db.query("DELETE FROM resources WHERE id = ?", [req.params.id], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: "Resource deleted" });
-  });
-});
-
-// --- QUIZ MANAGEMENT (CRUD) ---
-app.get('/api/learner/quiz/:moduleId', (req, res) => {
-  db.query("SELECT * FROM quizzes WHERE module_id = ?", [req.params.moduleId], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
-  });
-});
-
-app.post('/api/admin/quizzes', (req, res) => {
-  const { module_id, question, option_a, option_b, option_c, option_d, correct_answer } = req.body;
-  const sql = "INSERT INTO quizzes (module_id, question, option_a, option_b, option_c, option_d, correct_answer) VALUES (?, ?, ?, ?, ?, ?, ?)";
-  db.query(sql, [module_id, question, option_a, option_b, option_c, option_d, correct_answer], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: "Question added", id: result.insertId });
-  });
-});
-
-app.put('/api/admin/quizzes/:id', (req, res) => {
-  const { question, option_a, option_b, option_c, option_d, correct_answer } = req.body;
-  const sql = "UPDATE quizzes SET question=?, option_a=?, option_b=?, option_c=?, option_d=?, correct_answer=? WHERE id=?";
-  db.query(sql, [question, option_a, option_b, option_c, option_d, correct_answer, req.params.id], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: "Question updated" });
-  });
-});
-
-app.delete('/api/admin/quizzes/:id', (req, res) => {
-  db.query("DELETE FROM quizzes WHERE id = ?", [req.params.id], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: "Question deleted" });
-  });
-});
-
-// --- EXISTING ROUTES (Stress, Path, Alerts) ---
-app.post('/api/wellness/stress', (req, res) => {
-  const { userId, value, tip } = req.body;
-  db.query("INSERT INTO stress_logs (user_id, stress_value, regulation_tip_shown) VALUES (?, ?, ?)", [userId, value, tip], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: "Stress logged" });
-  });
-});
-
-app.get('/api/learner/path/:userId', (req, res) => {
-  const sql = "SELECT m.*, p.status FROM modules m LEFT JOIN user_progress p ON m.id = p.module_id AND p.user_id = ? ORDER BY m.id ASC";
-  db.query(sql, [req.params.userId], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
-  });
-});
-
 const PORT = 3000;
-app.listen(PORT, () => console.log(`🚀 Backend running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Backend connected to ${process.env.DB_NAME} on port ${PORT}`));
