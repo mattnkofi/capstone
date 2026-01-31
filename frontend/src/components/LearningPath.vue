@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { CheckCircle2, Lock, Flame, Maximize2, Minimize2, Trees, Flower2, Cloud } from 'lucide-vue-next'
+import { CheckCircle2, Lock, Flame, Maximize2, Minimize2, Trees, Flower2, Cloud, Sparkles } from 'lucide-vue-next'
 import api from '../services/api'
 
 const modules = ref([])
@@ -8,8 +8,8 @@ const userId = ref(1)
 const isFullscreen = ref(false)
 const containerRef = ref(null)
 
-// Vibrant palette for all ages
-const palette = ['bg-[#FF6B6B]', 'bg-[#4D96FF]', 'bg-[#6BCB77]', 'bg-[#FFD93D]', 'bg-[#9333ea]']
+// Blue and Pink color palette
+const palette = ['bg-[#FF007F]', 'bg-[#00D4FF]', 'bg-[#FF71CE]', 'bg-[#01CDFE]', 'bg-[#B967FF]']
 
 const toggleFullscreen = () => {
   if (!document.fullscreenElement) {
@@ -38,7 +38,6 @@ const loadPath = async () => {
   }
 }
 
-// Updated path: A more organic, winding trail
 const dynamicPath = computed(() => {
   if (modules.value.length === 0) return ''
   let d = "M 400 50 "
@@ -64,9 +63,9 @@ onMounted(() => {
 <template>
   <div 
     ref="containerRef"
-    class="relative w-full h-[850px] bg-[#87CEEB] overflow-y-auto overflow-x-hidden border-[12px] border-[#0F172A] rounded-[5rem] shadow-2xl custom-scrollbar"
+    class="relative w-full h-[850px] bg-gradient-to-b from-black via-[#001F3F] to-black overflow-y-auto overflow-x-hidden border-[12px] border-[#111] rounded-[5rem] shadow-2xl custom-scrollbar"
   >
-    <button @click="toggleFullscreen" class="fixed top-8 right-8 z-50 p-4 bg-white rounded-full border-4 border-[#0F172A] text-[#0F172A] shadow-[0_6px_0_0_#0F172A] hover:translate-y-1 hover:shadow-none transition-all">
+    <button @click="toggleFullscreen" class="fixed top-8 right-8 z-50 p-4 bg-white rounded-full border-4 border-black text-black shadow-[0_6px_0_0_#FF007F] hover:translate-y-1 hover:shadow-none transition-all">
       <Maximize2 v-if="!isFullscreen" class="w-6 h-6" />
       <Minimize2 v-else class="w-6 h-6" />
     </button>
@@ -74,48 +73,51 @@ onMounted(() => {
     <div class="relative" :style="{ height: (modules.length * 250) + 400 + 'px' }">
       
       <div class="absolute inset-0 pointer-events-none overflow-hidden">
-        <Cloud class="absolute text-white top-10 left-[-100px] w-24 h-24 animate-float-slow opacity-90" />
-        <Cloud class="absolute text-white top-60 right-[-100px] w-20 h-20 animate-float-fast opacity-70" />
-        <Cloud class="absolute text-white top-[500px] left-[-120px] w-28 h-28 animate-float-slow opacity-80" />
+        <Cloud class="absolute text-[#00D4FF] top-10 left-[-100px] w-24 h-24 animate-float-slow opacity-20" />
+        <Cloud class="absolute text-[#FF71CE] top-60 right-[-100px] w-20 h-20 animate-float-fast opacity-20" />
+        <Sparkles class="absolute text-white top-[400px] left-[20%] w-8 h-8 animate-pulse opacity-40" />
         
         <div v-for="n in 8" :key="'tree-'+n" class="absolute" 
              :style="{ top: (n * 300) + 'px', left: (n % 2 === 0 ? '5%' : '85%') }">
-          <Trees class="text-[#2D5A27] w-12 h-12 opacity-40" />
+          <Trees class="text-[#00D4FF] w-12 h-12 opacity-20" />
         </div>
         
         <div v-for="n in 15" :key="'flower-'+n" class="absolute" 
              :style="{ top: (n * 150) + 'px', left: (Math.random() * 90) + '%' }">
-          <Flower2 class="text-[#F472B6] w-6 h-6 opacity-30 animate-sway" 
+          <Flower2 class="text-[#FF71CE] w-6 h-6 opacity-40 animate-sway" 
                    :style="{ animationDelay: (n * 0.5) + 's' }" />
         </div>
       </div>
 
       <svg class="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-        <path :d="dynamicPath" fill="none" stroke="#78350F" stroke-width="95" stroke-linecap="round" class="opacity-20" />
-        <path :d="dynamicPath" fill="none" stroke="#0F172A" stroke-width="85" stroke-linecap="round" />
-        <path :d="dynamicPath" fill="none" stroke="#D1D5DB" stroke-width="65" stroke-linecap="round" />
-        <path :d="dynamicPath" fill="none" stroke="white" stroke-width="4" stroke-dasharray="10 20" stroke-linecap="round" class="opacity-30" />
-      </svg>
+  <path :d="dynamicPath" fill="none" stroke="#FF007F" stroke-width="140" stroke-linecap="round" class="opacity-10 blur-md" />
+  
+  <path :d="dynamicPath" fill="none" stroke="#00D4FF" stroke-width="125" stroke-linecap="round" class="opacity-20" />
+  
+  <path :d="dynamicPath" fill="none" stroke="#111" stroke-width="110" stroke-linecap="round" />
+  
+  <path :d="dynamicPath" fill="none" stroke="#FF71CE" stroke-width="4" stroke-dasharray="10 20" stroke-linecap="round" class="opacity-50" />
+</svg>  
 
       <div v-for="(mod, index) in modules" :key="mod.id" 
            :style="{ top: mod.top, left: mod.left }"
            class="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group z-10">
         
-        <div :class="[mod.color, 'w-24 h-24 rounded-full border-[6px] border-[#0F172A] shadow-[0_12px_0_0_#0F172A] flex items-center justify-center relative transition-all group-hover:scale-110 group-hover:-translate-y-2 active:translate-y-2 active:shadow-none']">
+        <div :class="[mod.color, 'w-24 h-24 rounded-full border-[6px] border-black shadow-[0_12px_0_0_#111] flex items-center justify-center relative transition-all group-hover:scale-110 group-hover:-translate-y-2 active:translate-y-2 active:shadow-none']">
           <img :src="`https://api.dicebear.com/7.x/bottts/svg?seed=${mod.id}`" 
                class="w-14 h-14 relative z-10" />
           
-          <div v-if="mod.status === 'locked'" class="absolute inset-0 bg-white/10 rounded-full flex items-center justify-center z-20">
-            <Lock class="text-[#0F172A] w-10 h-10 opacity-70" />
+          <div v-if="mod.status === 'locked'" class="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center z-20">
+            <Lock class="text-white w-10 h-10 opacity-70" />
           </div>
           
           <div v-if="mod.status === 'current'" class="absolute -top-6">
-             <Flame class="text-[#F59E0B] fill-[#F59E0B] w-10 h-10 animate-bounce" />
+             <Flame class="text-[#ff4d00] fill-[#fff200] w-10 h-10 animate-bounce" />
           </div>
         </div>
 
-        <div class="mt-6 bg-white border-4 border-[#0F172A] px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-[#0F172A] shadow-[0_6px_0_0_#0F172A] flex items-center gap-2">
-          <CheckCircle2 v-if="mod.status === 'completed'" class="w-4 h-4 text-[#10B981]" />
+        <div class="mt-6 bg-black text-white border-2 border-[#FF71CE] px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-[0_6px_0_0_#111] flex items-center gap-2">
+          <CheckCircle2 v-if="mod.status === 'completed'" class="w-4 h-4 text-[#00D4FF]" />
           {{ mod.title }}
         </div>
       </div>
@@ -125,7 +127,7 @@ onMounted(() => {
 
 <style scoped>
 .custom-scrollbar::-webkit-scrollbar { width: 12px; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #0F172A; border-radius: 50px; border: 3px solid #E0F2FE; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #FF71CE; border-radius: 50px; border: 3px solid black; }
 
 @keyframes float {
   0% { transform: translateX(0); }
