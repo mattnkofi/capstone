@@ -1,75 +1,110 @@
 <script setup>
-import { CheckCircle2, Lock, Star } from 'lucide-vue-next'
+import { ref, onMounted, computed } from 'vue'
+import { CheckCircle2, Lock, Cloud, Trees, Star } from 'lucide-vue-next'
+import api from '../services/api'
 
-const modules = [
-  { id: 1, title: 'GAD Basics', status: 'completed', color: 'from-[#00D4FF] to-[#00A3FF]', top: '15%', left: '25%' },
-  { id: 2, title: 'Understanding Consent', status: 'current', color: 'from-[#FF7EB3] to-[#FF4E91]', top: '45%', left: '55%' },
-  { id: 3, title: 'VAWC Prevention', status: 'locked', color: 'from-slate-400 to-slate-500', top: '75%', left: '35%' },
-]
+const modules = ref([])
+const userId = ref(1)
+
+// Colors for all ages
+const palette = ['bg-[#FF6B6B]', 'bg-[#4D96FF]', 'bg-[#6BCB77]', 'bg-[#FFD93D]', 'bg-[#FF9F45]', 'bg-[#9333ea]']
+
+/**
+ * DYNAMIC ROAD LOGIC
+ * Generates an SVG path string based on the number of modules
+ */
+const dynamicPath = computed(() => {
+  if (modules.value.length === 0) return ''
+  
+  // Starting point of the road
+  let path = "M 400 100 " 
+  
+  modules.value.forEach((_, index) => {
+    if (index === 0) return
+    
+    const yStart = 100 + (index - 1) * 200
+    const yEnd = 100 + index * 200
+    
+    // Every even curve goes right, every odd curve goes left
+    if (index % 2 !== 0) {
+      // Curve to the Right
+      path += `C 850 ${yStart}, 850 ${yEnd}, 400 ${yEnd} `
+    } else {
+      // Curve to the Left
+      path += `C -50 ${yStart}, -50 ${yEnd}, 400 ${yEnd} `
+    }
+  })
+  return path
+})
+
+const loadPath = async () => {
+  try {
+    const response = await api.getLearningPath(userId.value)
+    modules.value = response.data.map((mod, index) => {
+      const isRight = (index % 4 === 1 || index % 4 === 2)
+      return {
+        ...mod,
+        color: palette[index % palette.length],
+        // Positions nodes exactly on the road curves
+        top: `${100 + (index * 200)}px`, 
+        left: isRight ? '75%' : '25%'
+      }
+    })
+  } catch (error) {
+    console.error("Error loading path:", error)
+  }
+}
+
+onMounted(loadPath)
 </script>
 
 <template>
-  <div class="relative w-full h-[600px] bg-white/30 backdrop-blur-md rounded-[50px] border border-white/50 shadow-2xl overflow-hidden p-10">
-    
-    <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-30">
-      <defs>
-        <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#FF7EB3" />
-          <stop offset="100%" stop-color="#00D4FF" />
-        </linearGradient>
-      </defs>
-      <path 
-        d="M150,120 Q450,170 550,320 T350,520" 
-        fill="none" 
-        stroke="url(#pathGradient)" 
-        stroke-width="40" 
-        stroke-linecap="round" 
-        class="drop-shadow-[0_10px_10px_rgba(0,0,0,0.1)]"
-      />
-    </svg>
-
-    <div v-for="mod in modules" :key="mod.id" 
-         :style="{ top: mod.top, left: mod.left }"
-         class="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group cursor-pointer perspective-1000">
+  <div class="flex justify-center bg-slate-100 p-8 min-h-screen">
+    <div class="relative w-full max-w-[800px] bg-[#A0E7E5] border-[10px] border-black overflow-hidden rounded-[3rem] shadow-[0_20px_0_0_black]">
       
-      <div :class="[
-        mod.color, 
-        'bg-gradient-to-br p-1 rounded-[30px] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] transition-all duration-500',
-        'group-hover:-rotate-6 group-hover:scale-110 group-hover:-translate-y-4',
-        mod.status === 'locked' ? 'grayscale opacity-80' : 'animate-jump'
-      ]">
-        
-        <div class="w-24 h-24 flex items-center justify-center relative bg-white/20 backdrop-blur-sm rounded-[25px] border border-white/40 shadow-inner">
-          <img :src="`https://api.dicebear.com/7.x/bottts/svg?seed=${mod.id}`" 
-               class="w-16 h-16 drop-shadow-lg" />
-          
-          <div v-if="mod.status === 'completed'" 
-               class="absolute -top-3 -right-3 bg-green-400 rounded-full p-1.5 shadow-lg border-4 border-white">
-            <CheckCircle2 class="w-5 h-5 text-white" />
-          </div>
-          
-          <div v-if="mod.status === 'locked'" class="absolute inset-0 flex items-center justify-center bg-black/10 rounded-[25px]">
-            <Lock class="text-white w-10 h-10 drop-shadow-md" />
-          </div>
-
-          <div v-if="mod.status === 'current'" class="absolute inset-0 rounded-[25px] pulse-blue pointer-events-none"></div>
-        </div>
+      <div class="absolute inset-0 pointer-events-none opacity-40">
+        <Cloud class="absolute top-20 left-10 w-20 h-20 text-white" />
+        <Trees class="absolute top-[500px] right-10 w-16 h-16 text-[#3E7C17]" />
       </div>
 
-      <div class="mt-6 bg-white/80 backdrop-blur-md text-brand-purple px-6 py-2 rounded-2xl text-[12px] font-bold uppercase tracking-wider shadow-xl border border-white transition-all group-hover:bg-brand-purple group-hover:text-white">
-        {{ mod.title }}
+      <div class="relative w-full max-h-[850px] overflow-y-auto custom-scrollbar pt-20 pb-40">
+        <div class="relative mx-auto" :style="{ height: (modules.length * 200) + 200 + 'px' }">
+          
+          <svg class="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+            <path :d="dynamicPath" fill="none" stroke="black" stroke-width="90" stroke-linecap="round" />
+            <path :d="dynamicPath" fill="none" stroke="#B4E197" stroke-width="70" stroke-linecap="round" />
+            <path :d="dynamicPath" fill="none" stroke="white" stroke-width="4" stroke-dasharray="20 25" stroke-linecap="round" class="opacity-40" />
+          </svg>
+
+          <div v-for="mod in modules" :key="mod.id" 
+               :style="{ top: mod.top, left: mod.left }"
+               class="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group cursor-pointer z-10">
+            
+            <div :class="[mod.color, 'w-28 h-28 rounded-[40px] border-[6px] border-black shadow-[0_12px_0_0_black] transition-all duration-200 group-hover:-translate-y-1 active:translate-y-2 active:shadow-none']">
+              <div class="w-full h-full flex items-center justify-center relative">
+                <img :src="`https://api.dicebear.com/7.x/bottts/svg?seed=${mod.id}`" 
+                     :class="['w-16 h-16 relative z-10', mod.status === 'locked' ? 'grayscale opacity-30' : '']" />
+                
+                <div v-if="mod.status === 'completed'" class="absolute -top-3 -right-3 bg-yellow-400 rounded-full p-2 border-4 border-black shadow-[3px_3px_0_0_black]">
+                  <Star class="w-5 h-5 text-black fill-black" />
+                </div>
+                <div v-if="mod.status === 'locked'" class="absolute inset-0 flex items-center justify-center bg-black/10 rounded-[34px]">
+                  <Lock class="text-black/40 w-10 h-10" />
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6 bg-white border-4 border-black px-6 py-1.5 rounded-2xl text-[11px] font-black uppercase shadow-[5px_5px_0_0_black]">
+               {{ mod.title }}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.perspective-1000 {
-  perspective: 1000px;
-}
-
-/* Leveraging the animations from your CSS */
-.animate-jump {
-  animation: jump 3s infinite ease-in-out;
-}
+.custom-scrollbar::-webkit-scrollbar { width: 0px; }
+.custom-scrollbar { scrollbar-width: none; }
 </style>

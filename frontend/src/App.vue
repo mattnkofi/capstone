@@ -4,39 +4,68 @@ import Sidebar from './components/Sidebar.vue'
 import LearningPath from './components/LearningPath.vue'
 import StressMeter from './components/StressMeter.vue'
 import AnalyticsView from './views/AnalyticsView.vue'
+// Adding the new components required by the project title approval
+import RiskAlert from './components/RiskAlert.vue'
+import ResourceLibrary from './components/ResourceLibrary.vue'
+import RewardSystem from './components/RewardSystem.vue'
 
-const currentView = ref('learner') // Toggle between 'learner' and 'analytics'
+const currentView = ref('learner')
+// Initializing stressLevel to track AI-generated risk alerts
+const stressLevel = ref(30) 
 </script>
 
 <template>
-  <div class="flex min-h-screen bg-[#F0F4FF]">
+  <div class="flex min-h-screen bg-[#E0E7FF] p-6">
     <Sidebar @change-view="(v) => currentView = v" />
 
-    <main class="flex-1 ml-20 md:ml-64 p-6 md:p-12">
-      <header class="flex justify-between items-center mb-10">
+    <main class="flex-1 ml-72">
+      <header class="flex justify-between items-end mb-12">
         <div>
-          <h2 class="text-4xl font-black text-brand-purple tracking-tighter uppercase">
-            {{ currentView === 'learner' ? 'Hello, Protector!' : 'System Insights' }}
+          <div class="inline-block px-3 py-1 bg-brand-pink border-2 border-black rounded-lg mb-4 shadow-[4px_4px_0px_0px_black]">
+            <p class="text-[10px] font-black text-white uppercase tracking-widest">Active Session</p>
+          </div>
+          <h2 class="text-5xl font-black text-black tracking-tighter uppercase italic">
+            {{ currentView === 'learner' ? 'Status: Protected' : 'Data Terminal' }}
           </h2>
-          <p class="text-slate-500 text-sm font-bold uppercase tracking-widest">Mindoro State University • Project ProtectEd</p>
         </div>
-        <div class="flex space-x-4">
-           <button @click="currentView = 'learner'" :class="currentView === 'learner' ? 'bg-brand-purple text-white' : 'bg-white text-slate-400'" class="px-6 py-2 rounded-2xl text-xs font-black uppercase transition shadow-sm">Learner</button>
-           <button @click="currentView = 'analytics'" :class="currentView === 'analytics' ? 'bg-brand-purple text-white' : 'bg-white text-slate-400'" class="px-6 py-2 rounded-2xl text-xs font-black uppercase transition shadow-sm">AI Analytics</button>
+        
+        <div class="flex bg-black p-1.5 rounded-[20px] border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)]">
+           <button @click="currentView = 'learner'" 
+                   :class="currentView === 'learner' ? 'bg-brand-cyan text-black shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]' : 'bg-transparent text-white'" 
+                   class="px-8 py-3 rounded-[15px] text-[10px] font-black uppercase transition-all">
+             Manual
+           </button>
+           <button @click="currentView = 'analytics'" 
+                   :class="currentView === 'analytics' ? 'bg-brand-cyan text-black shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]' : 'bg-transparent text-white'" 
+                   class="px-8 py-3 rounded-[15px] text-[10px] font-black uppercase transition-all">
+             Analytics
+           </button>
         </div>
       </header>
 
-      <div v-if="currentView === 'learner'" class="flex flex-col lg:flex-row gap-10">
-        <div class="flex-1">
+      <div v-if="currentView === 'learner'" class="grid grid-cols-12 gap-10">
+        <div class="col-span-12 xl:col-span-7">
           <LearningPath />
         </div>
-        <div class="w-full lg:w-96 space-y-8">
-          <StressMeter />
-          <div class="bg-white p-8 rounded-[40px] shadow-sm border-b-4 border-slate-200">
-             <h4 class="font-black text-brand-purple text-xs uppercase mb-4 tracking-widest">Daily Progress</h4>
-             <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div class="bg-brand-cyan h-full" style="width: 70%"></div>
+        
+        <div class="col-span-12 xl:col-span-5 space-y-8">
+          <RiskAlert v-if="stressLevel > 80" /> 
+          
+          <StressMeter v-model="stressLevel" />
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ResourceLibrary />
+            <RewardSystem />
+          </div>
+
+          <div class="pop-3d p-8 rounded-[40px]">
+             <h4 class="font-black text-black text-xs uppercase mb-6 tracking-widest flex justify-between">
+                Progress <span>70%</span>
+             </h4>
+             <div class="h-8 w-full bg-slate-100 border-4 border-black rounded-xl overflow-hidden p-1 shadow-inner">
+                <div class="bg-gradient-to-r from-brand-cyan to-brand-purple h-full rounded-md border-r-2 border-black" style="width: 70%"></div>
              </div>
+             <p class="mt-4 text-[9px] font-bold text-slate-400 uppercase italic text-center">Next Milestone: VAWC Prevention</p>
           </div>
         </div>
       </div>
