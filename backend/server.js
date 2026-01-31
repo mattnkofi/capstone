@@ -7,52 +7,51 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Database Connection Configuration
 const db = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '', // Replace with your MySQL password
+  password: process.env.DB_PASSWORD || '',
   database: 'protected_db'
 });
 
-// --- API ROUTES ---
-
-// 1. Log Stress Level (Addresses Panel Feedback)
-app.post('/api/wellness/stress', (req, res) => {
-  const { userId, value, tip } = req.body;
-  const sql = "INSERT INTO stress_logs (user_id, stress_value, regulation_tip_shown) VALUES (?, ?, ?)";
-  db.query(sql, [userId, value, tip], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: "Stress logged successfully for AI tracking" });
-  });
-});
-
-// 2. Fetch Learning Path for Gamified Map
-app.get('/api/learner/path/:userId', (req, res) => {
-  const sql = `
-    SELECT m.id, m.title, m.category, p.status, p.score
-    FROM modules m
-    LEFT JOIN user_progress p ON m.id = p.module_id AND p.user_id = ?
-    ORDER BY m.id ASC`;
+// Adaptive Feature: Get system status based on recent stress
+app.get('/api/adaptive/status/:userId', (req, res) => {
+  const sql = "SELECT stress_value FROM stress_logs WHERE user_id = ? ORDER BY detected_at DESC LIMIT 3";
   db.query(sql, [req.params.userId], (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
+    const avg = results.length ? results.reduce((a, b) => a + b.stress_value, 0) / results.length : 0;
+    res.json({ adaptiveMode: avg > 70 });
   });
 });
 
-// 3. Get AI Risk Alerts (Facilitator View)
-app.get('/api/facilitator/alerts', (req, res) => {
-  const sql = `
-    SELECT a.*, u.username 
-    FROM risk_alerts a 
-    JOIN users u ON a.user_id = u.id 
-    WHERE a.facilitator_reviewed = FALSE 
-    ORDER BY a.detected_at DESC`;
+app.post('/api/wellness/stress', (req, res) => {
+  const { userId, value, tip } = req.body;
+  const isAdaptive = value > 70;
+  const sql = "INSERT INTO stress_logs (user_id, stress_value, regulation_tip_shown, adaptive_mode_triggered) VALUES (?, ?, ?, ?)";
+  db.query(sql, [userId, value, tip, isAdaptive], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: "Sync successful", adaptiveActive: isAdaptive });
+  });
+});
+
+app.get('/api/learner/path/:userId', (req, res) => {
+  const sql = "SELECT * FROM modules ORDER BY id ASC";
   db.query(sql, (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(results);
   });
 });
 
+app.post('/api/adaptive/toggle', (req, res) => {
+  const { userId, enabled } = req.body;
+  // This updates the user's focus preference in MySQL
+  const sql = "UPDATE user_analytics SET current_difficulty_level = ? WHERE user_id = ?";
+  const mode = enabled ? 'Focus' : 'Standard';
+  db.query(sql, [mode, userId], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true, mode: mode });
+  });
+});
+
 const PORT = 3000;
-app.listen(PORT, () => console.log(`🚀 ProtectEd Backend running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
