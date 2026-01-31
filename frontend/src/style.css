@@ -4,11 +4,41 @@
   --color-brand-purple: #4C4082;
   --color-brand-cyan: #00D4FF;
   --color-brand-pink: #FF7EB3;
+  --color-soft-bg: #F0F4FF;
 }
 
 body {
   margin: 0;
-  background-color: #F0F4FF;
-  font-family: 'Inter', sans-serif;
-  overflow-x: hidden;
+  /* Moving away from pure white to a soft, layered gradient */
+  background: linear-gradient(135deg, #F0F4FF 0%, #FFF0F6 100%); 
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
+
+/* Interactive Shadows */
+.game-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 6px solid rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.game-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(255, 126, 179, 0.2);
+}
+
+/* Animations for the Map */
+@keyframes jump {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.4); }
+  70% { box-shadow: 0 0 0 15px rgba(0, 212, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0); }
+}
+
+.animate-jump { animation: jump 2s infinite; }
+.pulse-blue { animation: pulse-glow 2s infinite; }

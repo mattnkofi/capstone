@@ -1,57 +1,33 @@
 <script setup>
-import { Wind, HeartPulse, Sparkles, ShieldCheck } from 'lucide-vue-next'
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { Wind, HeartPulse } from 'lucide-vue-next'
+import { ref } from 'vue'
 
-const stress = ref(40)
-const userId = 1
-const isAdaptive = ref(false)
-
-const checkAdaptiveStatus = async () => {
-  try {
-    const res = await axios.get(`http://localhost:3000/api/adaptive/status/${userId}`)
-    isAdaptive.value = res.data.adaptiveMode
-  } catch (e) { console.error(e) }
-}
-
-const saveStressEntry = async () => {
-  const tip = stress.value > 70 ? 'High Stress: Launching Focus Mode.' : 'Optimal levels detected.'
-  try {
-    const res = await axios.post('http://localhost:3000/api/wellness/stress', {
-      userId,
-      value: stress.value,
-      tip
-    })
-    isAdaptive.value = res.data.adaptiveActive
-  } catch (e) { console.error(e) }
-}
-
-onMounted(checkAdaptiveStatus)
+const stressLevel = ref(30)
 </script>
 
 <template>
-  <div :class="[isAdaptive ? 'bg-slate-900 border-brand-cyan' : 'bg-brand-purple border-black/20', 'p-8 rounded-[40px] text-white transition-all duration-700 border-b-8 shadow-2xl']">
-    <div class="flex justify-between mb-6">
-      <div class="flex items-center space-x-2 bg-white/10 px-3 py-1 rounded-full">
-        <HeartPulse :class="isAdaptive ? 'text-brand-cyan' : 'text-brand-pink'" class="w-4 h-4" />
-        <span class="text-[10px] font-black uppercase tracking-widest">
-          {{ isAdaptive ? 'Adaptive Focus Active' : 'Standard Wellness' }}
-        </span>
+  <div class="bg-brand-purple p-8 rounded-[40px] text-white shadow-2xl relative overflow-hidden group">
+    <div class="relative z-10">
+      <div class="flex justify-between items-center mb-6">
+        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-brand-cyan">Wellness Module</p>
+        <HeartPulse class="w-5 h-5 text-brand-pink animate-pulse" />
       </div>
-      <ShieldCheck v-if="isAdaptive" class="w-5 h-5 text-brand-cyan" />
-      <Sparkles v-else class="w-5 h-5 text-brand-cyan" />
-    </div>
-
-    <input type="range" v-model="stress" @change="saveStressEntry" class="w-full h-3 bg-white/20 rounded-lg appearance-none cursor-pointer accent-brand-cyan mb-6">
-
-    <div class="bg-white/10 p-5 rounded-3xl border border-white/10">
-      <div class="flex items-start space-x-4">
-        <Wind class="w-5 h-5 text-brand-cyan" />
-        <div>
-          <p class="text-[10px] font-black text-brand-cyan uppercase">System Response</p>
-          <p class="text-xs font-medium">{{ stress > 70 ? 'Reducing interface noise to help you focus.' : 'Great job maintaining balance!' }}</p>
+      
+      <h3 class="text-2xl font-black mb-2 italic">How are you feeling?</h3>
+      <p class="text-white/60 text-xs mb-6">Move the slider to report your current stress level.</p>
+      
+      <input type="range" v-model="stressLevel" class="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-brand-cyan mb-6">
+      
+      <div class="bg-white/10 p-4 rounded-2xl border border-white/10 backdrop-blur-md">
+        <div class="flex items-center space-x-3">
+          <Wind class="w-5 h-5 text-brand-cyan" />
+          <p class="text-[11px] leading-relaxed font-medium">
+            <span class="block font-black text-brand-cyan uppercase">Regulation Tip:</span>
+            {{ stressLevel > 60 ? 'Take a break and try the Box Breathing module.' : 'You are in the green zone! Keep exploring.' }}
+          </p>
         </div>
       </div>
     </div>
+    <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-brand-cyan/20 blur-[80px] rounded-full group-hover:bg-brand-cyan/40 transition-all"></div>
   </div>
 </template>

@@ -4,6 +4,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "lucide-vue-next": "^0.563.0",
-    "mysql2": "^3.16.2"
+    "mysql2": "^3.16.2",
+    "vue-router": "^4.6.4"
   }
 }

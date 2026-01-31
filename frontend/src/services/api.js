@@ -6,13 +6,20 @@ const apiClient = axios.create({
 });
 
 export default {
+  // Fetches the gamified path coordinates and status from MySQL
   getLearningPath(userId) {
     return apiClient.get(`/learner/path/${userId}`);
   },
-  getAdaptiveStatus(userId) {
-    return apiClient.get(`/adaptive/status/${userId}`);
-  },
-  logStress(data) {
+  // Records real-time stress data for AI behavioral pattern detection
+  saveStressLog(data) {
     return apiClient.post('/wellness/stress', data);
+  },
+  // Retrieves live AI-generated risk alerts for facilitators
+  getSystemAlerts() {
+    return apiClient.get('/facilitator/alerts');
+  },
+  // Fetches aggregated impact reports for the Researcher role
+  getImpactReports() {
+    return apiClient.get('/researcher/reports');
   }
 };
