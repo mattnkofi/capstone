@@ -1,8 +1,8 @@
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
-const multer = require('multer'); // New: File upload middleware
-const path = require('path');     // New: Path utility
+const multer = require('multer');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -12,7 +12,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Ensure this folder exists in your backend root
+    cb(null, 'uploads/');
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + '-' + file.originalname);
@@ -32,7 +32,6 @@ const db = mysql.createPool({
 
 // --- RESOURCE & UPLOAD ROUTES ---
 
-// Updated: Fetch resources including their local file paths
 app.get('/api/resources', (req, res) => {
   db.query("SELECT * FROM resources ORDER BY id DESC", (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -40,6 +39,32 @@ app.get('/api/resources', (req, res) => {
   });
 });
 
+// FIXED: Added the branched upload route
+app.post('/api/resources/upload-with-options', upload.single('file'), (req, res) => {
+  const { title, category, uploadType } = req.body;
+  
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+
+  const fileUrl = `http://localhost:3000/uploads/${req.file.filename}`;
+  const hasQuiz = uploadType === 'quiz' ? 1 : 0;
+
+  const sql = "INSERT INTO resources (title, content_url, category, has_quiz, resource_type) VALUES (?, ?, ?, ?, ?)";
+  db.query(sql, [title, fileUrl, category || 'General', hasQuiz, 'document'], (err, result) => {
+    if (err) {
+      console.error("Database Error:", err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ 
+      message: "Resource saved", 
+      resourceId: result.insertId, 
+      redirectToQuiz: hasQuiz === 1 
+    });
+  });
+});
+
+// Original upload route kept for compatibility
 app.post('/api/resources/upload', upload.single('file'), (req, res) => {
   const { title, resource_type, target_age_group, category } = req.body;
   const fileUrl = `http://localhost:3000/uploads/${req.file.filename}`;
@@ -51,7 +76,7 @@ app.post('/api/resources/upload', upload.single('file'), (req, res) => {
   });
 });
 
-// Existing Learner Routes...
+// Learner Path
 app.get('/api/learner/path/:userId', (req, res) => {
   const sql = `
     SELECT m.id, m.title, m.category, m.difficulty_level, p.status 
@@ -65,4 +90,4 @@ app.get('/api/learner/path/:userId', (req, res) => {
 });
 
 const PORT = 3000;
-app.listen(PORT, () => console.log(`🚀 Backend connected to ${process.env.DB_NAME} on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Backend Live on port ${PORT}`));

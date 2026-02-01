@@ -1,14 +1,15 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { CheckCircle2, Lock, Flame, Maximize2, Minimize2, Trees, Flower2, Cloud, Sparkles } from 'lucide-vue-next'
+import { useRouter } from 'vue-router' // Import router for navigation
+import { CheckCircle2, Lock, Flame, Maximize2, Minimize2, Trees, Flower2, Cloud, Sparkles, Play } from 'lucide-vue-next'
 import api from '../services/api'
 
+const router = useRouter()
 const modules = ref([])
 const userId = ref(1)
 const isFullscreen = ref(false)
 const containerRef = ref(null)
 
-// Blue and Pink color palette
 const palette = ['bg-[#FF007F]', 'bg-[#00D4FF]', 'bg-[#FF71CE]', 'bg-[#01CDFE]', 'bg-[#B967FF]']
 
 const toggleFullscreen = () => {
@@ -24,7 +25,9 @@ const toggleFullscreen = () => {
 const loadPath = async () => {
   try {
     const response = await api.getLearningPath(userId.value)
-    modules.value = response.data.map((mod, index) => {
+    // Ensure we handle the data structure correctly
+    const data = response.data || []
+    modules.value = data.map((mod, index) => {
       const isRight = (index % 4 === 1 || index % 4 === 2)
       return {
         ...mod,
@@ -81,38 +84,40 @@ onMounted(() => {
              :style="{ top: (n * 300) + 'px', left: (n % 2 === 0 ? '5%' : '85%') }">
           <Trees class="text-[#00D4FF] w-12 h-12 opacity-20" />
         </div>
-        
-        <div v-for="n in 15" :key="'flower-'+n" class="absolute" 
-             :style="{ top: (n * 150) + 'px', left: (Math.random() * 90) + '%' }">
-          <Flower2 class="text-[#FF71CE] w-6 h-6 opacity-40 animate-sway" 
-                   :style="{ animationDelay: (n * 0.5) + 's' }" />
-        </div>
       </div>
 
       <svg class="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-  <path :d="dynamicPath" fill="none" stroke="#FF007F" stroke-width="140" stroke-linecap="round" class="opacity-10 blur-md" />
-  
-  <path :d="dynamicPath" fill="none" stroke="#00D4FF" stroke-width="125" stroke-linecap="round" class="opacity-20" />
-  
-  <path :d="dynamicPath" fill="none" stroke="#111" stroke-width="110" stroke-linecap="round" />
-  
-  <path :d="dynamicPath" fill="none" stroke="#FF71CE" stroke-width="4" stroke-dasharray="10 20" stroke-linecap="round" class="opacity-50" />
-</svg>  
+        <path :d="dynamicPath" fill="none" stroke="#FF007F" stroke-width="140" stroke-linecap="round" class="opacity-10 blur-md" />
+        <path :d="dynamicPath" fill="none" stroke="#00D4FF" stroke-width="125" stroke-linecap="round" class="opacity-20" />
+        <path :d="dynamicPath" fill="none" stroke="#111" stroke-width="110" stroke-linecap="round" />
+        <path :d="dynamicPath" fill="none" stroke="#FF71CE" stroke-width="4" stroke-dasharray="10 20" stroke-linecap="round" class="opacity-50" />
+      </svg>
 
       <div v-for="(mod, index) in modules" :key="mod.id" 
            :style="{ top: mod.top, left: mod.left }"
            class="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group z-10">
         
-        <div :class="[mod.color, 'w-24 h-24 rounded-full border-[6px] border-black shadow-[0_12px_0_0_#111] flex items-center justify-center relative transition-all group-hover:scale-110 group-hover:-translate-y-2 active:translate-y-2 active:shadow-none']">
+        <div 
+          @click="mod.status !== 'locked' && router.push(`/game/${mod.id}`)"
+          :class="[
+            mod.color, 
+            'w-28 h-28 rounded-full border-[6px] border-black shadow-[0_12px_0_0_#111] flex flex-col items-center justify-center relative transition-all group-hover:scale-110 group-hover:-translate-y-2 active:translate-y-2 active:shadow-none cursor-pointer',
+            mod.status === 'locked' ? 'grayscale cursor-not-allowed' : ''
+          ]"
+        >
           <img :src="`https://api.dicebear.com/7.x/bottts/svg?seed=${mod.id}`" 
-               class="w-14 h-14 relative z-10" />
+               class="w-12 h-12 relative z-10" />
           
+          <div v-if="mod.status !== 'locked'" class="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-30">
+             <Play class="text-white fill-white w-8 h-8" />
+          </div>
+
           <div v-if="mod.status === 'locked'" class="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center z-20">
             <Lock class="text-white w-10 h-10 opacity-70" />
           </div>
           
-          <div v-if="mod.status === 'current'" class="absolute -top-6">
-             <Flame class="text-[#ff4d00] fill-[#fff200] w-10 h-10 animate-bounce" />
+          <div v-if="mod.status === 'current'" class="absolute -top-8">
+             <Flame class="text-[#ff4d00] fill-[#fff200] w-12 h-12 animate-bounce" />
           </div>
         </div>
 

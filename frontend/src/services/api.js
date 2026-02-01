@@ -20,11 +20,18 @@ export default {
     return apiClient.get('/resources');
   },
 
-  // --- Facilitator Methods ---
+  // --- Facilitator / Upload Methods ---
   getSystemAlerts() {
     return apiClient.get('/facilitator/alerts');
   },
   
+  // FIXED: Method for the branching upload workflow
+  uploadResourceWithOptions(formData) {
+    return apiClient.post('/resources/upload-with-options', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+
   uploadResource(formData) {
     return apiClient.post('/resources/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
