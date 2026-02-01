@@ -23,5 +23,11 @@ export default {
   // --- Facilitator Methods ---
   getSystemAlerts() {
     return apiClient.get('/facilitator/alerts');
+  },
+  
+  uploadResource(formData) {
+    return apiClient.post('/resources/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
   }
 };

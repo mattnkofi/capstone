@@ -1,13 +1,28 @@
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
+const multer = require('multer'); // New: File upload middleware
+const path = require('path');     // New: Path utility
 require('dotenv').config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Database connection pool using your .env settings
+// New: Serve uploaded files publicly so the frontend can view them
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// New: Configure Multer storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/'); // Ensure this folder exists in your backend root
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+const upload = multer({ storage: storage });
+
 const db = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
@@ -18,9 +33,29 @@ const db = mysql.createPool({
   queueLimit: 0
 });
 
-// --- LEARNER ROUTES ---
+// --- RESOURCE & UPLOAD ROUTES ---
 
-// Fetch real learning path by joining modules and user_progress
+// Updated: Fetch resources including their local file paths
+app.get('/api/resources', (req, res) => {
+  db.query("SELECT * FROM resources ORDER BY id DESC", (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+// New: Upload file and save metadata to database
+app.post('/api/resources/upload', upload.single('file'), (req, res) => {
+  const { title, resource_type, target_age_group } = req.body;
+  const fileUrl = `http://localhost:3000/uploads/${req.file.filename}`;
+  
+  const sql = "INSERT INTO resources (title, resource_type, target_age_group, content_url) VALUES (?, ?, ?, ?)";
+  db.query(sql, [title, resource_type, target_age_group, fileUrl], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: "File uploaded successfully", id: result.insertId });
+  });
+});
+
+// Existing Learner Routes...
 app.get('/api/learner/path/:userId', (req, res) => {
   const sql = `
     SELECT m.id, m.title, m.category, m.difficulty_level, p.status 
@@ -28,24 +63,6 @@ app.get('/api/learner/path/:userId', (req, res) => {
     LEFT JOIN user_progress p ON m.id = p.module_id AND p.user_id = ? 
     ORDER BY m.id ASC`;
   db.query(sql, [req.params.userId], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
-  });
-});
-
-// Log stress data directly to the stress_logs table
-app.post('/api/wellness/stress', (req, res) => {
-  const { userId, value, tip } = req.body;
-  const sql = "INSERT INTO stress_logs (user_id, stress_value, regulation_tip_shown) VALUES (?, ?, ?)";
-  db.query(sql, [userId, value, tip], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: "Stress logged successfully" });
-  });
-});
-
-// Fetch resources from the resources table
-app.get('/api/resources', (req, res) => {
-  db.query("SELECT * FROM resources", (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(results);
   });
