@@ -36,5 +36,8 @@ export default {
     return apiClient.post('/resources/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
+  },
+  saveGamifiedQuiz(quizData) {
+    return apiClient.post('/quiz/save-gamified', quizData);
   }
 };

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router' // Import router for navigation
+import { useRouter } from 'vue-router'
 import { CheckCircle2, Lock, Flame, Maximize2, Minimize2, Trees, Flower2, Cloud, Sparkles, Play } from 'lucide-vue-next'
 import api from '../services/api'
 
@@ -24,22 +24,35 @@ const toggleFullscreen = () => {
 
 const loadPath = async () => {
   try {
-    const response = await api.getLearningPath(userId.value)
-    // Ensure we handle the data structure correctly
-    const data = response.data || []
+    const response = await api.getLearningPath(userId.value);
+    const data = response.data || [];
     modules.value = data.map((mod, index) => {
-      const isRight = (index % 4 === 1 || index % 4 === 2)
+      const isRight = (index % 4 === 1 || index % 4 === 2);
       return {
         ...mod,
         color: palette[index % palette.length],
         top: `${200 + (index * 250)}px`, 
         left: isRight ? '65%' : '35%',
-      }
-    })
+        // Store if the module has a playable quiz
+        isPlayable: mod.has_quiz === 1 
+      };
+    });
   } catch (error) {
-    console.error("Error loading learning path:", error)
+    console.error("Error loading learning path:", error);
   }
-}
+};
+
+const handleModuleClick = (mod) => {
+  if (mod.status === 'locked') return;
+
+  if (mod.isPlayable) {
+    // Navigate using the resourceId because the GameView fetches data by resourceId
+    router.push(`/game/${mod.resourceId}`);
+  } else {
+    // Fallback if there is no game (e.g., view document)
+    console.log("No quiz available for this module.");
+  }
+};
 
 const dynamicPath = computed(() => {
   if (modules.value.length === 0) return ''
@@ -74,14 +87,11 @@ onMounted(() => {
     </button>
 
     <div class="relative" :style="{ height: (modules.length * 250) + 400 + 'px' }">
-      
       <div class="absolute inset-0 pointer-events-none overflow-hidden">
         <Cloud class="absolute text-[#00D4FF] top-10 left-[-100px] w-24 h-24 animate-float-slow opacity-20" />
         <Cloud class="absolute text-[#FF71CE] top-60 right-[-100px] w-20 h-20 animate-float-fast opacity-20" />
         <Sparkles class="absolute text-white top-[400px] left-[20%] w-8 h-8 animate-pulse opacity-40" />
-        
-        <div v-for="n in 8" :key="'tree-'+n" class="absolute" 
-             :style="{ top: (n * 300) + 'px', left: (n % 2 === 0 ? '5%' : '85%') }">
+        <div v-for="n in 8" :key="'tree-'+n" class="absolute" :style="{ top: (n * 300) + 'px', left: (n % 2 === 0 ? '5%' : '85%') }">
           <Trees class="text-[#00D4FF] w-12 h-12 opacity-20" />
         </div>
       </div>
@@ -98,17 +108,16 @@ onMounted(() => {
            class="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group z-10">
         
         <div 
-          @click="mod.status !== 'locked' && router.push(`/game/${mod.id}`)"
+          @click="handleModuleClick(mod)"
           :class="[
             mod.color, 
             'w-28 h-28 rounded-full border-[6px] border-black shadow-[0_12px_0_0_#111] flex flex-col items-center justify-center relative transition-all group-hover:scale-110 group-hover:-translate-y-2 active:translate-y-2 active:shadow-none cursor-pointer',
-            mod.status === 'locked' ? 'grayscale cursor-not-allowed' : ''
+            (mod.status === 'locked' || !mod.isPlayable) ? 'grayscale cursor-not-allowed' : ''
           ]"
         >
-          <img :src="`https://api.dicebear.com/7.x/bottts/svg?seed=${mod.id}`" 
-               class="w-12 h-12 relative z-10" />
+          <img :src="`https://api.dicebear.com/7.x/bottts/svg?seed=${mod.id}`" class="w-12 h-12 relative z-10" />
           
-          <div v-if="mod.status !== 'locked'" class="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-30">
+          <div v-if="mod.status !== 'locked' && mod.isPlayable" class="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-30">
              <Play class="text-white fill-white w-8 h-8" />
           </div>
 
