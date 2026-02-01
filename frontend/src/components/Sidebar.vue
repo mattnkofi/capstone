@@ -6,7 +6,6 @@ import {
   Microscope, FileOutput, LogOut, ChevronDown 
 } from 'lucide-vue-next'
 
-// Role state for toggling visibility
 const userRole = ref('learner') 
 const showRoleDropdown = ref(false)
 
@@ -17,13 +16,13 @@ const navigation = {
     { name: 'Stressmeter', icon: HeartPulse, path: '/stress-meter' },
     { name: 'Resources', icon: Library, path: '/resources' },
     { name: 'Rewards', icon: Gift, path: '/rewards' },
-    { name: 'Settings', icon: Settings, path: '/settings' },
   ],
   admin: [
+    { name: 'System Analytics', icon: BarChart3, path: '/analytics' },
+    // These paths exist in your sidebar list but need to be added to router/index.js to work
     { name: 'User Management', icon: Users, path: '/admin/users' },
     { name: 'Content Management', icon: Edit, path: '/admin/content' },
     { name: 'AI Alerts', icon: ShieldAlert, path: '/admin/alerts' },
-    { name: 'System Analytics', icon: BarChart3, path: '/analytics' },
   ],
   facilitator: [
     { name: 'Learner Tracking', icon: UserCheck, path: '/facilitator/tracking' },
@@ -72,7 +71,7 @@ const selectRole = (role) => {
         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">General</p>
         <router-link v-for="item in navigation.common" :key="item.name" :to="item.path" v-slot="{ isActive }">
           <div :class="[
-            'block w-full p-4 border-4 rounded-2xl transition-all group mb-2',
+            'block w-full p-4 border-4 rounded-2xl transition-all group mb-2 cursor-pointer',
             isActive 
               ? 'bg-cyan-400 border-black shadow-[6px_6px_0px_0px_black] translate-x-[-4px] translate-y-[-4px]' 
               : 'border-transparent hover:border-black hover:bg-slate-50 hover:shadow-[6px_6px_0px_0px_black]'
@@ -91,7 +90,7 @@ const selectRole = (role) => {
         <p class="text-[9px] font-black text-rose-400 uppercase tracking-widest ml-2">System Admin</p>
         <router-link v-for="item in navigation.admin" :key="item.name" :to="item.path" v-slot="{ isActive }">
           <div :class="[
-            'block w-full p-4 border-4 rounded-2xl transition-all group',
+            'block w-full p-4 border-4 rounded-2xl transition-all group cursor-pointer',
             isActive ? 'bg-rose-400 border-black shadow-[6px_6px_0px_0px_black] translate-x-[-4px] translate-y-[-4px]' : 'border-transparent hover:border-black hover:bg-rose-50 hover:shadow-[6px_6px_0px_0px_black]'
           ]">
             <div class="flex items-center space-x-4">
@@ -106,11 +105,26 @@ const selectRole = (role) => {
         <p class="text-[9px] font-black text-emerald-400 uppercase tracking-widest ml-2">Instructional</p>
         <router-link v-for="item in navigation.facilitator" :key="item.name" :to="item.path" v-slot="{ isActive }">
           <div :class="[
-            'block w-full p-4 border-4 rounded-2xl transition-all group',
+            'block w-full p-4 border-4 rounded-2xl transition-all group cursor-pointer',
             isActive ? 'bg-emerald-400 border-black shadow-[6px_6px_0px_0px_black] translate-x-[-4px] translate-y-[-4px]' : 'border-transparent hover:border-black hover:bg-emerald-50 hover:shadow-[6px_6px_0px_0px_black]'
           ]">
             <div class="flex items-center space-x-4">
               <component :is="item.icon" :class="['w-5 h-5', isActive ? 'text-black' : 'text-emerald-400 group-hover:text-black']" />
+              <span :class="['text-[10px] uppercase tracking-widest', isActive ? 'font-black text-black' : 'font-bold text-slate-500 group-hover:text-black']">{{ item.name }}</span>
+            </div>
+          </div>
+        </router-link>
+      </div>
+
+      <div v-if="userRole === 'researcher'" class="pt-4 border-t-4 border-slate-100 space-y-3">
+        <p class="text-[9px] font-black text-brand-purple uppercase tracking-widest ml-2">Research</p>
+        <router-link v-for="item in navigation.researcher" :key="item.name" :to="item.path" v-slot="{ isActive }">
+          <div :class="[
+            'block w-full p-4 border-4 rounded-2xl transition-all group cursor-pointer',
+            isActive ? 'bg-purple-400 border-black shadow-[6px_6px_0px_0px_black] translate-x-[-4px] translate-y-[-4px]' : 'border-transparent hover:border-black hover:bg-purple-50 hover:shadow-[6px_6px_0px_0px_black]'
+          ]">
+            <div class="flex items-center space-x-4">
+              <component :is="item.icon" :class="['w-5 h-5', isActive ? 'text-black' : 'text-purple-400 group-hover:text-black']" />
               <span :class="['text-[10px] uppercase tracking-widest', isActive ? 'font-black text-black' : 'font-bold text-slate-500 group-hover:text-black']">{{ item.name }}</span>
             </div>
           </div>
@@ -126,8 +140,3 @@ const selectRole = (role) => {
     </div>
   </aside>
 </template>
-
-<style scoped>
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-</style>

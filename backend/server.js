@@ -8,11 +8,8 @@ require('dotenv').config();
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-// New: Serve uploaded files publicly so the frontend can view them
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// New: Configure Multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/'); // Ensure this folder exists in your backend root
@@ -43,13 +40,12 @@ app.get('/api/resources', (req, res) => {
   });
 });
 
-// New: Upload file and save metadata to database
 app.post('/api/resources/upload', upload.single('file'), (req, res) => {
-  const { title, resource_type, target_age_group } = req.body;
+  const { title, resource_type, target_age_group, category } = req.body;
   const fileUrl = `http://localhost:3000/uploads/${req.file.filename}`;
   
-  const sql = "INSERT INTO resources (title, resource_type, target_age_group, content_url) VALUES (?, ?, ?, ?)";
-  db.query(sql, [title, resource_type, target_age_group, fileUrl], (err, result) => {
+  const sql = "INSERT INTO resources (title, resource_type, target_age_group, content_url, category) VALUES (?, ?, ?, ?, ?)";
+  db.query(sql, [title, resource_type, target_age_group, fileUrl, category || 'General'], (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ message: "File uploaded successfully", id: result.insertId });
   });
