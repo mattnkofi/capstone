@@ -5,6 +5,7 @@ import ResourceLibrary from '../components/ResourceLibrary.vue'
 import LearningPath from '../components/LearningPath.vue'
 import StressMeter from '../components/StressMeter.vue'
 import RewardSystem from '../components/RewardSystem.vue'
+import DocumentViewer from '../views/DocumentViewer.vue' // Import the new view
 
 const routes = [
   { path: '/', redirect: '/dashboard' },
@@ -15,7 +16,14 @@ const routes = [
   { path: '/rewards', component: RewardSystem },
   { path: '/analytics', component: AnalyticsView },
   
-  // FIXED: Ensure GamePlayer can receive the ID from LearningPath
+  // New route for dedicated full-screen document viewing
+  { 
+    path: '/view-document/:resourceId', 
+    name: 'DocumentViewer', 
+    component: DocumentViewer,
+    props: true 
+  },
+  
   { 
     path: '/game/:id', 
     name: 'GamePlayer', 
@@ -23,7 +31,6 @@ const routes = [
     props: true 
   },
   
-  // FIXED: Added :resourceId so the creator knows which file the quiz belongs to
   { 
     path: '/admin/create-quiz/:resourceId', 
     name: 'QuizCreator', 

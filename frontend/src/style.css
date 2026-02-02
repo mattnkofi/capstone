@@ -1,39 +1,49 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-purple: #4C4082;
-  --color-brand-cyan: #00D4FF;
-  --color-brand-pink: #FF7EB3;
+  --color-brand-blue: #2563eb;
+  --color-brand-pink: #ec4899;
+  --color-surface-glass: rgba(255, 255, 255, 0.7);
 }
 
 body {
-  background: #E0E7FF; /* Slightly darker to make white elements pop */
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: linear-gradient(135deg, #f8fafc 0%, #fae8ff 100%);
+  font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
+  color: #1e293b;
+  min-height: 100vh;
 }
 
-/* 3D "Pop" Utility */
-.pop-3d {
-  background: white;
-  border: 3px solid #000;
-  /* Bottom shadow + Side shadow for isometric depth */
-  box-shadow: 8px 8px 0px 0px #000;
-  transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+/* Glassmorphism Card Utility */
+.glass-card {
+  background: var(--color-surface-glass);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 15px -1px rgba(0, 0, 0, 0.04);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 1.5rem;
 }
 
-.pop-3d:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 12px 12px 0px 0px #000;
+.glass-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08);
+  border-color: rgba(37, 99, 235, 0.2);
 }
 
-.pop-3d:active {
-  transform: translate(6px, 6px);
-  box-shadow: 0px 0px 0px 0px #000;
+/* Interactive Text Utility */
+.text-gradient {
+  background: linear-gradient(to right, #2563eb, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-/* Recessed Track (The "In-set" Look) */
-.recessed-groove {
-  background: #D1D5DB;
-  box-shadow: inset 6px 6px 12px rgba(0,0,0,0.2), 
-              inset -6px -6px 12px rgba(255,255,255,0.8);
-  border-radius: 40px;
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
 }

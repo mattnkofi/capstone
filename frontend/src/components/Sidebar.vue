@@ -3,9 +3,10 @@ import { ref } from 'vue'
 import { 
   ShieldAlert, LayoutDashboard, Map, HeartPulse, Library, Gift, 
   Settings, Users, Edit, BarChart3, UserCheck, BrainCircuit, 
-  Microscope, FileOutput, LogOut, ChevronDown 
+  Microscope, FileOutput, LogOut, ChevronLeft, ChevronRight, ChevronDown 
 } from 'lucide-vue-next'
 
+const isCollapsed = ref(false)
 const userRole = ref('learner') 
 const showRoleDropdown = ref(false)
 
@@ -19,18 +20,7 @@ const navigation = {
   ],
   admin: [
     { name: 'System Analytics', icon: BarChart3, path: '/analytics' },
-    // These paths exist in your sidebar list but need to be added to router/index.js to work
     { name: 'User Management', icon: Users, path: '/admin/users' },
-    { name: 'Content Management', icon: Edit, path: '/admin/content' },
-    { name: 'AI Alerts', icon: ShieldAlert, path: '/admin/alerts' },
-  ],
-  facilitator: [
-    { name: 'Learner Tracking', icon: UserCheck, path: '/facilitator/tracking' },
-    { name: 'Risk Dashboard', icon: BrainCircuit, path: '/facilitator/risks' },
-  ],
-  researcher: [
-    { name: 'Research Data', icon: Microscope, path: '/researcher/data' },
-    { name: 'Data Export', icon: FileOutput, path: '/researcher/export' },
   ]
 }
 
@@ -41,101 +31,78 @@ const selectRole = (role) => {
 </script>
 
 <template>
-  <aside class="fixed left-6 top-6 bottom-6 w-64 bg-white border-[6px] border-black rounded-[40px] shadow-[16px_16px_0px_0px_#4C4082] flex flex-col p-6 z-50 overflow-y-auto no-scrollbar">
-    
-    <div class="relative mb-6 z-50">
+  <aside 
+    :class="[isCollapsed ? 'w-20' : 'w-72']" 
+    class="fixed left-0 top-0 bottom-0 bg-white/80 backdrop-blur-xl border-r border-slate-200/60 transition-all duration-300 z-50 flex flex-col p-4"
+  >
+    <button 
+      @click="isCollapsed = !isCollapsed" 
+      class="absolute -right-3 top-10 bg-white border border-slate-200 rounded-full p-1 shadow-md hover:text-blue-600 transition-colors cursor-pointer"
+    >
+      <ChevronLeft v-if="!isCollapsed" class="w-4 h-4" />
+      <ChevronRight v-else class="w-4 h-4" />
+    </button>
+
+    <div class="flex items-center space-x-3 mb-10 px-2 overflow-hidden">
+      <div class="bg-gradient-to-br from-blue-600 to-pink-500 p-2.5 rounded-xl shadow-lg shadow-blue-500/20 shrink-0">
+        <ShieldAlert class="w-6 h-6 text-white" />
+      </div>
+      <h1 v-if="!isCollapsed" class="text-xl font-black uppercase italic tracking-tighter text-slate-800 whitespace-nowrap">
+        Protect<span class="text-blue-600">Ed</span>
+      </h1>
+    </div>
+
+    <div v-if="!isCollapsed" class="relative mb-8 px-2">
       <button @click="showRoleDropdown = !showRoleDropdown" 
-        class="w-full flex items-center justify-between p-3 bg-slate-900 text-white rounded-2xl border-2 border-black text-[10px] font-black uppercase tracking-widest shadow-[4px_4px_0px_0px_black] active:translate-y-1 active:shadow-none transition-all">
-        <span>View as: {{ userRole }}</span>
-        <ChevronDown class="w-4 h-4" />
+        class="w-full flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-100 transition-all">
+        <span>{{ userRole }} View</span>
+        <ChevronDown class="w-3 h-3 transition-transform" :class="{'rotate-180': showRoleDropdown}" />
       </button>
       
-      <div v-if="showRoleDropdown" class="absolute top-full left-0 right-0 mt-2 bg-white border-4 border-black rounded-2xl shadow-[6px_6px_0px_0px_black] overflow-hidden">
-        <button v-for="role in ['learner', 'admin', 'facilitator', 'researcher']" :key="role"
+      <div v-if="showRoleDropdown" class="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-xl z-10 overflow-hidden">
+        <button v-for="role in ['learner', 'admin', 'facilitator']" :key="role"
           @click="selectRole(role)"
-          class="w-full p-3 text-left text-[10px] font-black uppercase tracking-widest hover:bg-cyan-400 border-b-2 border-black last:border-0">
+          class="w-full p-3 text-left text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 hover:text-blue-600 transition-colors">
           {{ role }}
         </button>
       </div>
     </div>
 
-    <div class="flex items-center space-x-3 mb-8 bg-slate-100 p-4 rounded-3xl border-2 border-black">
-      <div class="bg-cyan-400 border-2 border-black p-1.5 rounded-xl shadow-[4px_4px_0px_0px_black]">
-        <ShieldAlert class="w-6 h-6 text-black" />
-      </div>
-      <h1 class="text-xl font-black uppercase italic tracking-tighter">ProtectEd</h1>
-    </div>
+    <nav class="flex-1 space-y-1 overflow-y-auto no-scrollbar">
+      <p v-if="!isCollapsed" class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-4 mb-2">Main Menu</p>
+      
+      <router-link v-for="item in navigation.common" :key="item.name" :to="item.path" v-slot="{ isActive }">
+        <div :class="[
+          'flex items-center space-x-3 px-3 py-3 rounded-xl transition-all group cursor-pointer mb-1',
+          isActive 
+            ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30' 
+            : 'text-slate-500 hover:bg-slate-100/50 hover:text-slate-900'
+        ]">
+          <component :is="item.icon" class="w-5 h-5 shrink-0" />
+          <span v-if="!isCollapsed" class="text-sm font-bold whitespace-nowrap">{{ item.name }}</span>
+        </div>
+      </router-link>
 
-    <nav class="flex-1 space-y-4">
-      <div class="space-y-3">
-        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">General</p>
-        <router-link v-for="item in navigation.common" :key="item.name" :to="item.path" v-slot="{ isActive }">
-          <div :class="[
-            'block w-full p-4 border-4 rounded-2xl transition-all group mb-2 cursor-pointer',
-            isActive 
-              ? 'bg-cyan-400 border-black shadow-[6px_6px_0px_0px_black] translate-x-[-4px] translate-y-[-4px]' 
-              : 'border-transparent hover:border-black hover:bg-slate-50 hover:shadow-[6px_6px_0px_0px_black]'
-          ]">
-            <div class="flex items-center space-x-4">
-              <component :is="item.icon" :class="['w-5 h-5', isActive ? 'text-black' : 'text-slate-400 group-hover:text-black']" />
-              <span :class="['text-[10px] uppercase tracking-widest', isActive ? 'font-black text-black' : 'font-bold text-slate-500 group-hover:text-black']">
-                {{ item.name }}
-              </span>
-            </div>
-          </div>
-        </router-link>
-      </div>
-
-      <div v-if="userRole === 'admin'" class="pt-4 border-t-4 border-slate-100 space-y-3">
-        <p class="text-[9px] font-black text-rose-400 uppercase tracking-widest ml-2">System Admin</p>
+      <div v-if="userRole === 'admin'" class="pt-6 mt-6 border-t border-slate-100">
+        <p v-if="!isCollapsed" class="text-[9px] font-black text-pink-500 uppercase tracking-widest px-4 mb-2">Systems</p>
         <router-link v-for="item in navigation.admin" :key="item.name" :to="item.path" v-slot="{ isActive }">
           <div :class="[
-            'block w-full p-4 border-4 rounded-2xl transition-all group cursor-pointer',
-            isActive ? 'bg-rose-400 border-black shadow-[6px_6px_0px_0px_black] translate-x-[-4px] translate-y-[-4px]' : 'border-transparent hover:border-black hover:bg-rose-50 hover:shadow-[6px_6px_0px_0px_black]'
+            'flex items-center space-x-3 px-3 py-3 rounded-xl transition-all group cursor-pointer mb-1',
+            isActive 
+              ? 'bg-gradient-to-r from-pink-600 to-pink-500 text-white shadow-lg shadow-pink-500/30' 
+              : 'text-slate-500 hover:bg-pink-50/50 hover:text-pink-600'
           ]">
-            <div class="flex items-center space-x-4">
-              <component :is="item.icon" :class="['w-5 h-5', isActive ? 'text-black' : 'text-rose-400 group-hover:text-black']" />
-              <span :class="['text-[10px] uppercase tracking-widest', isActive ? 'font-black text-black' : 'font-bold text-slate-500 group-hover:text-black']">{{ item.name }}</span>
-            </div>
-          </div>
-        </router-link>
-      </div>
-
-      <div v-if="userRole === 'facilitator'" class="pt-4 border-t-4 border-slate-100 space-y-3">
-        <p class="text-[9px] font-black text-emerald-400 uppercase tracking-widest ml-2">Instructional</p>
-        <router-link v-for="item in navigation.facilitator" :key="item.name" :to="item.path" v-slot="{ isActive }">
-          <div :class="[
-            'block w-full p-4 border-4 rounded-2xl transition-all group cursor-pointer',
-            isActive ? 'bg-emerald-400 border-black shadow-[6px_6px_0px_0px_black] translate-x-[-4px] translate-y-[-4px]' : 'border-transparent hover:border-black hover:bg-emerald-50 hover:shadow-[6px_6px_0px_0px_black]'
-          ]">
-            <div class="flex items-center space-x-4">
-              <component :is="item.icon" :class="['w-5 h-5', isActive ? 'text-black' : 'text-emerald-400 group-hover:text-black']" />
-              <span :class="['text-[10px] uppercase tracking-widest', isActive ? 'font-black text-black' : 'font-bold text-slate-500 group-hover:text-black']">{{ item.name }}</span>
-            </div>
-          </div>
-        </router-link>
-      </div>
-
-      <div v-if="userRole === 'researcher'" class="pt-4 border-t-4 border-slate-100 space-y-3">
-        <p class="text-[9px] font-black text-brand-purple uppercase tracking-widest ml-2">Research</p>
-        <router-link v-for="item in navigation.researcher" :key="item.name" :to="item.path" v-slot="{ isActive }">
-          <div :class="[
-            'block w-full p-4 border-4 rounded-2xl transition-all group cursor-pointer',
-            isActive ? 'bg-purple-400 border-black shadow-[6px_6px_0px_0px_black] translate-x-[-4px] translate-y-[-4px]' : 'border-transparent hover:border-black hover:bg-purple-50 hover:shadow-[6px_6px_0px_0px_black]'
-          ]">
-            <div class="flex items-center space-x-4">
-              <component :is="item.icon" :class="['w-5 h-5', isActive ? 'text-black' : 'text-purple-400 group-hover:text-black']" />
-              <span :class="['text-[10px] uppercase tracking-widest', isActive ? 'font-black text-black' : 'font-bold text-slate-500 group-hover:text-black']">{{ item.name }}</span>
-            </div>
+            <component :is="item.icon" class="w-5 h-5 shrink-0" />
+            <span v-if="!isCollapsed" class="text-sm font-bold whitespace-nowrap">{{ item.name }}</span>
           </div>
         </router-link>
       </div>
     </nav>
 
-    <div class="mt-auto pt-6">
-      <div class="flex items-center space-x-3 p-4 bg-rose-100 text-rose-600 rounded-3xl border-2 border-rose-600 cursor-pointer hover:bg-rose-600 hover:text-white transition-colors group">
-        <LogOut class="w-5 h-5" />
-        <span class="text-[10px] font-black uppercase tracking-widest">Sign Out</span>
+    <div class="pt-4 border-t border-slate-100">
+      <div class="flex items-center space-x-3 p-3 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer group">
+        <LogOut class="w-5 h-5 shrink-0" />
+        <span v-if="!isCollapsed" class="text-sm font-black uppercase tracking-widest">Logout</span>
       </div>
     </div>
   </aside>

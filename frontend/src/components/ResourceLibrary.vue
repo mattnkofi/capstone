@@ -2,8 +2,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
-  Folder, Plus, Inbox, Eye, Download, X, 
-  Maximize, Search, FileText, BrainCircuit 
+  Folder, Plus, Search, FileText, BrainCircuit, 
+  Eye, Download, Inbox, Sparkles 
 } from 'lucide-vue-next'
 import api from '../services/api'
 
@@ -16,12 +16,7 @@ const selectedFile = ref(null)
 const selectedCategory = ref('General')
 const activeTab = ref('All')
 const searchQuery = ref('')
-const uploadType = ref('readable') // Initialized to avoid render warnings
-
-// Modal State
-const showViewer = ref(false)
-const selectedResource = ref(null)
-const iframeRef = ref(null)
+const uploadType = ref('readable')
 
 const categories = ['General', 'VAWC', 'Sex Education', 'Gender and Development', 'Safety Plan']
 
@@ -36,7 +31,7 @@ const fetchResources = async () => {
   }
 }
 
-// Search and Category Filter Logic
+// Filter Logic
 const filteredResources = computed(() => {
   return resources.value.filter(res => {
     const matchesCategory = activeTab.value === 'All' || res.category === activeTab.value;
@@ -49,53 +44,33 @@ const handleFileSelect = (e) => {
   selectedFile.value = e.target.files[0]
 }
 
-// Main Upload Logic
+// Navigation to dedicated Full-Screen Dashboard Viewer
+const openViewer = (res) => {
+  router.push({ name: 'DocumentViewer', params: { resourceId: res.id } })
+}
+
+// Upload Logic utilizing the corporate blue-pink gradient system
 const processUpload = async () => {
-  if (!selectedFile.value || !uploadTitle.value) {
-    alert("Please provide a title and select a file.")
-    return
-  }
-  
+  if (!selectedFile.value || !uploadTitle.value) return
+
   const formData = new FormData()
   formData.append('file', selectedFile.value)
   formData.append('title', uploadTitle.value)
   formData.append('category', selectedCategory.value)
   formData.append('uploadType', uploadType.value)
-  formData.append('resource_type', 'document')
-  formData.append('target_age_group', 'All Ages')
 
   try {
-    // FIX: Using the correct service method defined in api.js
     const res = await api.uploadResourceWithOptions(formData)
     
-    const resourceId = res.data.resourceId
-    const shouldRedirect = res.data.redirectToQuiz
-
-    if (shouldRedirect) {
-      // Navigate to the Quiz Creator with the new ID
-      router.push(`/admin/create-quiz/${resourceId}`)
+    if (res.data.redirectToQuiz) {
+      router.push(`/admin/create-quiz/${res.data.resourceId}`)
     } else {
-      // Reset form and refresh
       uploadTitle.value = ''
       selectedFile.value = null
-      uploadType.value = 'readable'
       fetchResources()
-      alert("Resource uploaded successfully!")
     }
   } catch (err) {
     console.error("Upload failed", err)
-    alert("Failed to upload resource. Check if backend is running.")
-  }
-}
-
-const openViewer = (res) => {
-  selectedResource.value = res
-  showViewer.value = true
-}
-
-const enterFullscreen = () => {
-  if (iframeRef.value?.requestFullscreen) {
-    iframeRef.value.requestFullscreen()
   }
 }
 
@@ -108,143 +83,141 @@ onMounted(fetchResources)
 </script>
 
 <template>
-  <div class="pop-3d p-6 bg-white rounded-[40px] flex flex-col h-full relative border-4 border-black">
-    
-    <div class="mb-6 space-y-4 shrink-0">
-      <div class="relative">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+  <div class="max-w-6xl mx-auto space-y-8 pb-12">
+    <div class="flex flex-col md:flex-row gap-6 items-center">
+      <div class="relative flex-1 w-full">
+        <Search class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
         <input 
           v-model="searchQuery" 
           type="text" 
-          placeholder="Search resources..." 
-          class="w-full pl-10 pr-4 py-3 border-2 border-black rounded-xl text-xs font-bold focus:ring-2 ring-brand-cyan outline-none"
+          placeholder="Search corporate intelligence..." 
+          class="w-full pl-14 pr-6 py-5 bg-white/50 backdrop-blur-md border border-slate-200 rounded-[32px] text-sm font-bold focus:ring-4 focus:ring-blue-100 outline-none transition-all shadow-sm"
         />
       </div>
-
-      <div class="flex space-x-2 overflow-x-auto pb-2 no-scrollbar">
+      
+      <div class="flex space-x-2 overflow-x-auto no-scrollbar w-full md:w-auto">
         <button v-for="tab in ['All', ...categories]" :key="tab"
           @click="activeTab = tab"
           :class="[
-            'px-4 py-2 rounded-xl border-2 border-black text-[10px] font-black uppercase transition-all whitespace-nowrap',
-            activeTab === tab ? 'bg-brand-cyan shadow-[4px_4px_0px_0px_black] -translate-y-1' : 'bg-slate-100 hover:bg-slate-200'
-          ]">
+            activeTab === tab 
+              ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/20' 
+              : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
+          ]"
+          class="px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap"
+        >
           {{ tab }}
         </button>
       </div>
     </div>
 
-    <div class="mb-8 p-6 border-4 border-black border-dashed rounded-3xl bg-slate-50 shrink-0">
-      <h3 class="text-[10px] font-black uppercase mb-4 text-slate-400">Add New Content</h3>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <input v-model="uploadTitle" type="text" placeholder="Document Title..." class="p-3 border-2 border-black rounded-xl text-xs font-bold bg-white" />
-        <select v-model="selectedCategory" class="p-3 border-2 border-black rounded-xl text-xs font-bold bg-white outline-none">
-          <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
-        </select>
-      </div>
-
-      <div class="mb-4 flex flex-col gap-3">
-        <p class="font-black text-[9px] uppercase text-slate-400">1. Choose File</p>
-        <div class="p-2 border-2 border-black rounded-xl bg-white">
-          <input type="file" @change="handleFileSelect" class="text-[10px] w-full" />
+    <div class="glass-card p-8 bg-gradient-to-br from-white/90 to-blue-50/30">
+      <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
+            <Plus class="w-5 h-5" />
+          </div>
+          <h3 class="text-xs font-black uppercase tracking-widest text-slate-400">Resource Distribution</h3>
+        </div>
+        <div class="flex items-center space-x-2 text-pink-500">
+          <Sparkles class="w-4 h-4" />
+          <span class="text-[9px] font-black uppercase tracking-tighter italic">AI Ready</span>
         </div>
       </div>
       
-      <div v-if="selectedFile" class="flex flex-col gap-4 animate-in fade-in duration-300">
-        <p class="font-black text-[9px] uppercase text-slate-400">2. Upload Type</p>
-        <div class="flex gap-2">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="space-y-2">
+          <label class="text-[10px] font-black uppercase text-slate-400 ml-2 italic">Document Title</label>
+          <input v-model="uploadTitle" type="text" placeholder="Enter formal title..." 
+                 class="w-full p-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold focus:border-blue-500 transition-all outline-none" />
+        </div>
+        <div class="space-y-2">
+          <label class="text-[10px] font-black uppercase text-slate-400 ml-2 italic">Classification Category</label>
+          <select v-model="selectedCategory" 
+                  class="w-full p-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold outline-none cursor-pointer appearance-none">
+            <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex flex-col md:flex-row gap-6 items-end">
+        <div class="flex-1 w-full space-y-2">
+          <label class="text-[10px] font-black uppercase text-slate-400 ml-2 italic">Attach Asset</label>
+          <div class="p-4 bg-white border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-between group hover:border-blue-400 transition-all cursor-pointer">
+            <input type="file" @change="handleFileSelect" class="text-xs w-full cursor-pointer" />
+          </div>
+        </div>
+        
+        <div v-if="selectedFile" class="flex gap-3 w-full md:w-auto">
           <button @click="uploadType = 'readable'" 
-            :class="uploadType === 'readable' ? 'bg-brand-cyan shadow-[3px_3px_0px_0px_black] -translate-y-1' : 'bg-white'" 
-            class="flex-1 p-3 border-2 border-black rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2">
+                  :class="uploadType === 'readable' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-100 text-slate-500'" 
+                  class="px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2">
             <FileText class="w-4 h-4" /> Readable
           </button>
           <button @click="uploadType = 'quiz'" 
-            :class="uploadType === 'quiz' ? 'bg-brand-purple text-white shadow-[3px_3px_0px_0px_black] -translate-y-1' : 'bg-white'"
-            class="flex-1 p-3 border-2 border-black rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2">
-            <BrainCircuit class="w-4 h-4" /> Quiz Game
+                  :class="uploadType === 'quiz' ? 'bg-pink-600 text-white shadow-lg shadow-pink-500/20' : 'bg-slate-100 text-slate-500'" 
+                  class="px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2">
+            <BrainCircuit class="w-4 h-4" /> Gamify
           </button>
         </div>
-        
-        <button @click="processUpload" 
-          class="w-full bg-black text-white p-4 rounded-2xl font-black uppercase text-xs hover:bg-slate-800 transition-all shadow-[4px_4px_0px_0px_#FF007F] active:shadow-none active:translate-y-1">
-          {{ uploadType === 'quiz' ? 'Continue to Quiz Creator' : 'Finalize Upload' }}
+
+        <button @click="processUpload" v-if="selectedFile" 
+                class="w-full md:w-auto bg-slate-900 text-white px-10 py-4 rounded-2xl font-black uppercase text-xs hover:bg-blue-600 transition-all shadow-xl shadow-slate-900/10 active:scale-95">
+          Deploy Resource
         </button>
       </div>
     </div>
 
-    <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-      <div v-if="filteredResources.length > 0">
-        <div v-for="res in filteredResources" :key="res.id" 
-          class="flex items-center p-4 border-4 border-black rounded-2xl mb-4 bg-white hover:bg-slate-50 transition-all">
-          <div class="bg-brand-purple p-2 rounded-xl border-2 border-black mr-4 shadow-[3px_3px_0_0_black]">
-            <Folder class="w-5 h-5 text-black" />
+    <div v-if="filteredResources.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div v-for="res in filteredResources" :key="res.id" 
+           class="glass-card p-6 flex flex-col justify-between group border-transparent hover:border-blue-200 cursor-pointer"
+           @click="openViewer(res)">
+        <div class="flex items-start justify-between mb-8">
+          <div class="p-4 bg-blue-50 text-blue-600 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
+            <Folder class="w-6 h-6" />
           </div>
-          <div class="flex-1">
-            <p class="text-[11px] font-black uppercase leading-tight">{{ res.title }}</p>
-            <span class="text-[8px] px-2 py-0.5 bg-brand-cyan border border-black rounded font-black uppercase inline-block mt-1">
-              {{ res.category }}
-            </span>
-          </div>
-          
           <div class="flex gap-2">
-            <button @click="openViewer(res)" class="p-2 border-2 border-black rounded-lg hover:bg-brand-cyan transition-colors">
+            <a :href="getDownloadUrl(res.content_url)" download @click.stop 
+               class="p-2.5 bg-slate-50 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all">
+              <Download class="w-4 h-4" />
+            </a>
+            <button class="p-2.5 bg-slate-50 text-slate-400 group-hover:text-blue-600 group-hover:bg-blue-50 rounded-xl transition-all">
               <Eye class="w-4 h-4" />
             </button>
-            <a :href="getDownloadUrl(res.content_url)" download class="p-2 border-2 border-black rounded-lg hover:bg-green-400 transition-colors flex items-center justify-center">
-              <Download class="w-4 h-4 text-black" />
-            </a>
           </div>
         </div>
-      </div>
-
-      <div v-else class="flex flex-col items-center justify-center p-12 text-center border-4 border-black rounded-3xl border-dotted bg-slate-50">
-        <Inbox class="w-12 h-12 text-slate-300 mb-4" />
-        <p class="font-black text-slate-400 uppercase text-xs">No matching resources found</p>
+        
+        <div>
+          <h4 class="text-sm font-black uppercase leading-tight text-slate-800 line-clamp-2 mb-3 group-hover:text-blue-600 transition-colors">
+            {{ res.title }}
+          </h4>
+          <div class="flex items-center justify-between">
+            <span class="text-[9px] px-3 py-1 bg-blue-50 text-blue-600 rounded-full font-black uppercase tracking-widest border border-blue-100">
+              {{ res.category }}
+            </span>
+            <span class="text-[8px] font-bold text-slate-300 uppercase italic">Ref: #{{ res.id }}</span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div v-if="showViewer" class="fixed inset-0 z-[100] bg-black/90 flex flex-col p-4 md:p-10">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-white font-black uppercase tracking-widest">{{ selectedResource?.title }}</h2>
-        <div class="flex gap-4">
-          <button @click="enterFullscreen" class="text-white hover:text-brand-cyan flex items-center gap-2">
-            <Maximize class="w-6 h-6" /> <span class="text-[10px] font-bold uppercase">Fullscreen</span>
-          </button>
-          <button @click="showViewer = false" class="text-white hover:text-red-500">
-            <X class="w-8 h-8" />
-          </button>
-        </div>
-      </div>
-      
-      <div class="flex-1 bg-white rounded-3xl overflow-hidden border-4 border-black relative">
-        <iframe 
-          ref="iframeRef"
-          :src="selectedResource?.content_url" 
-          class="w-full h-full" 
-          frameborder="0"
-        ></iframe>
-      </div>
+    <div v-else class="glass-card p-20 flex flex-col items-center justify-center text-center border-dashed">
+      <Inbox class="w-16 h-16 text-slate-200 mb-6" />
+      <h3 class="text-lg font-black uppercase text-slate-400 italic">No assets found</h3>
+      <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest mt-2">Try adjusting your filters or search query</p>
     </div>
   </div>
 </template>
 
 <style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 15px -1px rgba(0, 0, 0, 0.04);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 2rem;
 }
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: black;
-  border-radius: 10px;
-}
-.animate-in {
-  animation: fadeInSlide 0.4s ease-out;
-}
-@keyframes fadeInSlide {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 </style>
