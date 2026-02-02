@@ -86,7 +86,7 @@ const handleLogout = () => {
       </div>
       <button @click="handleLogout" class="flex items-center gap-5 p-5 text-slate-600 font-bold text-[10px] tracking-[0.5em] hover:text-red-500 transition-all uppercase w-full group">
         <LogOut size="20" class="group-hover:-translate-x-1 transition-transform" />
-        <span v-if="!isCollapsed">Terminate</span>
+        <span v-if="!isCollapsed">Log Out</span>
       </button>
     </div>
   </aside>

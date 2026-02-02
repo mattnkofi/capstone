@@ -5,41 +5,81 @@
   --panel-dark: #0f172a;
   --accent-blue: #3b82f6;
   --accent-pink: #ec4899;
+  
+  /* Balanced Professional Typography Scale */
+  --font-main: "Poppins", sans-serif;
+  --text-xs: 0.75rem;    /* 12px - Labels */
+  --text-sm: 0.875rem;   /* 14px - Secondary/Sidebar */
+  --text-base: 1rem;     /* 16px - Primary Body Text */
+  --text-md: 1.125rem;   /* 18px - Subheaders */
+  --text-lg: 1.25rem;    /* 20px - Section Titles */
+  --text-xl: 1.75rem;    /* 28px - Main Page Titles */
 }
 
 body {
   background: var(--bg-dark);
-  /* Pure Century Gothic implementation */
-  font-family: "Century Gothic", "Apple Gothic", "AppleGothic", sans-serif;
+  font-family: var(--font-main);
+  font-size: var(--text-base); /* Standard professional 16px base */
   color: #f1f5f9;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   overflow-x: hidden;
 }
 
-/* Hover & Interactive Utility */
+/* Refined Typography Hierarchy */
+h1 { 
+  font-size: var(--text-xl); 
+  font-weight: 700; 
+  letter-spacing: -0.02em; 
+  margin-bottom: 1.25rem;
+  line-height: 1.2;
+}
+
+h2 { 
+  font-size: var(--text-lg); 
+  font-weight: 600; 
+  letter-spacing: -0.01em; 
+  margin-bottom: 1rem;
+}
+
+h3.text-xl {
+  letter-spacing: -0.05em; /* Tighter tracking for very large numbers */
+  font-feature-settings: "tnum" on, "lnum" on; /* Ensures tabular lining for numbers */
+}
+
+/* Secondary/Metadata Text */
+.text-muted {
+  font-size: var(--text-sm);
+  color: #94a3b8;
+}
+
+/* Professional Depth Panel */
 .depth-panel {
   background: var(--panel-dark);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  border-radius: 1.5rem;
-  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.2);
+  border-radius: 0.75rem; /* Balanced corner radius */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .depth-panel:hover {
-  transform: translateY(-8px) rotateX(4deg) rotateY(-2deg);
-  border-color: rgba(236, 72, 153, 0.4);
-  box-shadow: 0 40px 80px -15px rgba(0, 0, 0, 0.7);
+  transform: translateY(-4px); 
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.4);
 }
 
-/* Interactive Neon Pulse */
-.pulse-neon { animation: pulse-ring 2s infinite; }
+/* Minimal Pulse Effect */
+.pulse-neon { animation: pulse-ring 3s infinite; }
 @keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
-  70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.2); }
+  70% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
   100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
 }
 
 /* Page Transitions */
-.page-fade-enter-active, .page-fade-leave-active { transition: all 0.5s ease; }
-.page-fade-enter-from { opacity: 0; transform: translateY(20px); }
-.page-fade-leave-to { opacity: 0; transform: translateY(-20px); }
+.page-fade-enter-active, .page-fade-leave-active { 
+  transition: opacity 0.3s ease, transform 0.3s ease; 
+}
+.page-fade-enter-from { opacity: 0; transform: translateY(8px); }
+.page-fade-leave-to { opacity: 0; transform: translateY(-8px); }
