@@ -5,35 +5,29 @@ const apiClient = axios.create({
   headers: { 'Content-Type': 'application/json' }
 });
 
+apiClient.interceptors.request.use(config => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export default {
-  // --- Learner Methods ---
+  register(userData) {
+    return apiClient.post('/auth/register', userData);
+  },
+  login(credentials) {
+    return apiClient.post('/auth/login', credentials);
+  },
   getLearningPath(userId) {
     return apiClient.get(`/learner/path/${userId}`);
-  },
-  saveStressLog(data) {
-    return apiClient.post('/wellness/stress', data);
-  },
-  getModuleQuiz(moduleId) {
-    return apiClient.get(`/learner/quiz/${moduleId}`);
   },
   getResources() {
     return apiClient.get('/resources');
   },
-
-  // --- Facilitator / Upload Methods ---
-  getSystemAlerts() {
-    return apiClient.get('/facilitator/alerts');
-  },
-  
-  // FIXED: Method for the branching upload workflow
   uploadResourceWithOptions(formData) {
     return apiClient.post('/resources/upload-with-options', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-  },
-
-  uploadResource(formData) {
-    return apiClient.post('/resources/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },

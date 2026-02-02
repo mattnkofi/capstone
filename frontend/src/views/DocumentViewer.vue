@@ -1,76 +1,47 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { X, Download, FileText, ChevronLeft, ShieldCheck } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
+import { X, ShieldAlert, CheckCircle } from 'lucide-vue-next'
 import api from '../services/api'
 
-const route = useRoute()
+const props = defineProps(['resourceId'])
 const router = useRouter()
 const resource = ref(null)
-const loading = ref(true)
+const showExitModal = ref(false)
 
-const fetchResource = async () => {
-  try {
-    const res = await api.getResources()
-    resource.value = res.data.find(r => r.id == route.params.resourceId)
-  } catch (err) {
-    console.error("Document load failed", err)
-  } finally {
-    loading.value = false
-  }
-}
-
-const getDownloadUrl = (url) => {
-  const filename = url.split('/').pop()
-  return `http://localhost:3000/api/resources/download/${filename}`
-}
-
-onMounted(fetchResource)
+onMounted(async () => {
+  const res = await api.getResources()
+  resource.value = res.data.find(r => r.id === parseInt(props.resourceId))
+})
 </script>
 
 <template>
-  <div class="h-screen w-full flex flex-col bg-slate-900">
-    
-    <header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between z-50 shadow-md">
-      <div class="flex items-center space-x-4">
-        <button @click="router.back()" class="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-500 group">
-          <ChevronLeft class="w-6 h-6" />
+  <div class="fixed inset-0 z-[100] bg-black flex flex-col h-screen w-screen font-gothic overflow-hidden">
+    <header class="absolute top-0 left-0 right-0 p-6 z-50 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
+      <div class="flex items-center gap-4">
+        <button @click="showExitModal = true" class="p-2 bg-white/10 rounded-full text-white hover:bg-pink-600 transition-all">
+          <X size="20" />
         </button>
-        
-        <div class="flex items-center space-x-3">
-          <div class="bg-blue-600 p-2 rounded-lg">
-            <FileText class="w-5 h-5 text-white" />
-          </div>
-          <h1 class="text-xs font-black uppercase tracking-widest text-slate-800">
-            {{ resource?.title || 'Loading Intelligence...' }}
-          </h1>
-        </div>
-      </div>
-
-      <div class="flex items-center space-x-4">
-        <a v-if="resource" :href="getDownloadUrl(resource.content_url)" download 
-           class="flex items-center space-x-2 px-5 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all">
-          <Download class="w-4 h-4" />
-          <span>Download</span>
-        </a>
-        <button @click="router.push('/resources')" class="p-2 hover:bg-rose-50 text-rose-500 rounded-xl transition-all">
-          <X class="w-6 h-6" />
-        </button>
+        <h2 class="text-xs font-bold text-white uppercase tracking-widest">{{ resource?.title }}</h2>
       </div>
     </header>
 
-    <main class="flex-1 w-full bg-slate-800 relative">
-      <div v-if="loading" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 z-10">
-        <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="text-[10px] font-black text-white uppercase tracking-[0.3em]">Opening Secure Asset</p>
-      </div>
+    <iframe v-if="resource?.content_url" :src="resource.content_url" class="w-full h-full border-none bg-white"></iframe>
+    <div v-else class="flex items-center justify-center h-full text-slate-500 text-[10px] uppercase font-bold tracking-widest">
+      Loading secure content...
+    </div>
 
-      <iframe 
-        v-if="resource"
-        :src="resource.content_url" 
-        class="w-full h-full border-none"
-        allow="fullscreen"
-      ></iframe>
-    </main>
+    <div v-if="showExitModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-6">
+      <div class="soft-panel bg-[#0f172a] p-10 max-w-sm w-full text-center">
+        <ShieldAlert class="w-12 h-12 text-pink-500 mx-auto mb-6" />
+        <h3 class="text-lg font-black text-white uppercase italic tracking-tighter">Exit Lesson?</h3>
+        <p class="text-slate-500 text-[10px] font-medium uppercase tracking-widest mt-4 mb-8">Your current progress will be saved.</p>
+        
+        <div class="flex gap-3">
+          <button @click="showExitModal = false" class="flex-1 py-3 bg-white/5 text-slate-400 rounded-lg text-[9px] font-bold uppercase tracking-widest">Back</button>
+          <button @click="router.push('/resources')" class="flex-1 py-3 bg-blue-600 text-white rounded-lg text-[9px] font-bold uppercase tracking-widest">Exit</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

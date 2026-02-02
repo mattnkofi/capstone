@@ -1,69 +1,43 @@
 <script setup>
 import { ref } from 'vue'
-import { HeartPulse, BrainCircuit } from 'lucide-vue-next'
+import { HeartPulse, BrainCircuit, CheckCircle2 } from 'lucide-vue-next'
 import api from '../services/api'
 
-const stressLevel = ref(45)
-const status = ref('Online')
+const user = JSON.parse(localStorage.getItem('user')) || { id: 1 }
+const stressLevel = ref(50)
+const saved = ref(false)
 
-const syncWithDB = async () => {
-  status.value = 'Syncing...'
+const logStress = async () => {
   try {
-    const tip = stressLevel.value > 70 ? 'High tension detected. Breather recommended.' : 'Optimal focus state.'
-    await api.saveStressLog({ userId: 1, value: stressLevel.value, tip })
-    status.value = 'Data Saved'
-    setTimeout(() => { status.value = 'Online' }, 2000)
+    await api.saveStressLog({ userId: user.id, stressValue: stressLevel.value })
+    saved.value = true
+    setTimeout(() => saved.value = false, 3000)
   } catch (err) {
-    status.value = 'Sync Error'
+    console.error("Failed to save stress log")
   }
 }
 </script>
 
 <template>
-  <div class="glass-card p-8 flex flex-col justify-between">
-    <div class="flex justify-between items-center mb-8">
-      <div class="flex items-center space-x-4">
-        <div class="p-3 bg-pink-50 rounded-2xl">
-          <HeartPulse class="w-6 h-6 text-pink-500" />
-        </div>
-        <div>
-          <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Wellness Monitor</p>
-          <p class="text-sm font-bold text-slate-700">AI Stress Analysis</p>
-        </div>
+  <div class="panel-elevated p-10 bg-[#0f172a]">
+    <div class="flex justify-between items-center mb-10">
+      <div class="flex items-center gap-5">
+        <div class="p-3 bg-pink-900/20 rounded-xl"><HeartPulse class="w-8 h-8 text-pink-600" /></div>
+        <h4 class="text-xl font-black text-white italic uppercase tracking-tighter">Wellness Tracker</h4>
       </div>
-      <span :class="[status.includes('Error') ? 'bg-rose-50 text-rose-500 border-rose-100' : 'bg-blue-50 text-blue-500 border-blue-100']" class="px-4 py-1.5 rounded-xl text-[10px] font-black uppercase border tracking-widest transition-all">
-        {{ status }}
-      </span>
+      <button @click="logStress" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-black uppercase text-[10px] tracking-widest hover:bg-pink-600 transition-all">
+        {{ saved ? 'LOGGED' : 'LOG DATA' }}
+      </button>
     </div>
 
     <div class="space-y-8">
-      <div class="relative group">
-        <input 
-          type="range" v-model="stressLevel" @change="syncWithDB" 
-          class="w-full h-2.5 bg-slate-100 rounded-full appearance-none cursor-pointer accent-blue-600 transition-all"
-        >
-        <div class="flex justify-between mt-4 text-[9px] font-black text-slate-300 uppercase tracking-widest">
-          <span>Low Stress</span>
-          <span>Moderate</span>
-          <span>High Activity</span>
+      <input type="range" v-model="stressLevel" class="w-full h-2 bg-[#020617] rounded-full appearance-none accent-blue-600">
+      <div class="bg-[#020617] p-8 rounded-2xl border border-white/5 flex items-center justify-between">
+        <div class="text-center">
+          <p class="text-[9px] font-black text-slate-500 uppercase">Current Level</p>
+          <p class="text-4xl font-black text-white tracking-tighter">{{ stressLevel }}</p>
         </div>
-      </div>
-
-      <div class="bg-gradient-to-br from-slate-50 to-white rounded-3xl p-6 border border-slate-100 flex items-center justify-between">
-        <div class="flex items-center space-x-6">
-          <div class="text-center">
-            <p class="text-[9px] font-black text-slate-400 uppercase">Level</p>
-            <p class="text-3xl font-black text-slate-800 tracking-tighter">{{ stressLevel }}</p>
-          </div>
-          <div class="h-10 w-[1px] bg-slate-200"></div>
-          <div>
-            <p class="text-[9px] font-black text-slate-400 uppercase">Analysis Tip</p>
-            <p class="text-xs font-bold text-blue-600 italic">
-              {{ stressLevel > 70 ? 'Recommendation: Take a short meditation break.' : 'System detects optimal cognitive performance.' }}
-            </p>
-          </div>
-        </div>
-        <BrainCircuit class="w-6 h-6 text-blue-500/30" />
+        <BrainCircuit class="w-8 h-8 text-blue-500 opacity-20" />
       </div>
     </div>
   </div>
