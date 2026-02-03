@@ -59,7 +59,37 @@ const routes = [
     component: () => import('../components/ModuleQuiz.vue'),
     props: true,
     meta: { requiresAuth: true }
-  }
+  },
+  {
+  path: '/learning-path',
+  name: 'LearningPath',
+  component: () => import('../components/LearningPath.vue'),
+  meta: { requiresAuth: true }
+},
+{
+  path: '/modules',
+  name: 'Modules',
+  component: () => import('../views/Dashboard.vue'), // Or your specific modules view
+  meta: { requiresAuth: true }
+},
+{
+  path: '/stress-meter',
+  name: 'StressMeter',
+  component: () => import('../components/StressMeter.vue'),
+  meta: { requiresAuth: true }
+},
+{
+  path: '/rewards',
+  name: 'Rewards',
+  component: () => import('../components/RewardSystem.vue'),
+  meta: { requiresAuth: true }
+},
+{
+  path: '/milestones',
+  name: 'Milestones',
+  component: () => import('../views/AnalyticsView.vue'), // Placeholder
+  meta: { requiresAuth: true }
+}
 ]
 
 const router = createRouter({

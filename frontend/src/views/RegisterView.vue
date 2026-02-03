@@ -1,93 +1,122 @@
 <script setup>
-import { User, Mail, Lock, CheckCircle, ShieldPlus, ArrowRight, ChevronLeft } from 'lucide-vue-next'
+import { ShieldPlus, User, Mail, Lock, ArrowRight, CheckCircle, ChevronLeft } from 'lucide-vue-next'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import api from '../services/api'
 
 const router = useRouter()
-const name = ref('')
+const username = ref('')
 const email = ref('')
 const password = ref('')
-const success = ref(false)
+const role = ref('learner')
+const error = ref('')
+const showModal = ref(false)
+const loading = ref(false)
 
-const handleRegister = () => {
-  // Logic for registration success
-  success.value = true
+const handleRegister = async () => {
+  if (!username.value || !email.value || !password.value) {
+    error.value = "Please fill in all fields"
+    return
+  }
   
-  // Wait for 1.5 seconds so the user can see the message, then redirect
-  setTimeout(() => {
-    router.push('/login')
-  }, 1500)
+  error.value = ''
+  loading.value = true
+  
+  try {
+    await api.register({
+      username: username.value,
+      email: email.value,
+      password: password.value,
+      role: role.value
+    })
+    showModal.value = true
+  } catch (err) {
+    error.value = err.response?.data?.error || "Registration failed"
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
 <template>
-  <div class="auth-page">
-    <div class="gradient-bg"></div>
-
-    <div class="bubbles-container">
-      <div v-for="n in 12" :key="n" class="bubble"></div>
-    </div>
-
-    <div class="circle pink-glow"></div>
-    <div class="circle blue-glow"></div>
-
-    <router-link to="/" class="back-link">
+  <div class="min-h-screen w-full flex items-center justify-center bg-[#F0F4FF] p-6 relative font-sans">
+    <router-link to="/" class="absolute top-10 left-10 flex items-center gap-2 text-slate-400 font-black uppercase text-[10px] hover:text-indigo-600 transition-colors">
       <ChevronLeft class="w-4 h-4" /> Back to Home
     </router-link>
 
-    <div class="auth-card" :class="{ 'blur-sm': success }">
-      <div class="card-header">
-        <div class="logo-box-pink">
-          <ShieldPlus class="logo-icon" />
+    <div class="w-full max-w-md bg-white rounded-[48px] shadow-2xl p-10 border-b-8 border-slate-200">
+      <div class="flex flex-col items-center text-center mb-8">
+        <div class="bg-cyan-400 p-4 rounded-[24px] shadow-lg mb-4 animate-bounce-slow">
+          <ShieldPlus class="w-10 h-10 text-indigo-600" />
         </div>
-        <h2>Sign Up</h2>
-        <p>Join the game and start your journey.</p>
-      </div>
-
-      <div class="form-body">
-        <div class="input-group">
-          <label>Full Name</label>
-          <div class="input-wrapper">
-            <User class="field-icon" />
-            <input v-model="name" type="text" placeholder="Enter your full name" />
-          </div>
-        </div>
-
-        <div class="input-group">
-          <label>Email Address</label>
-          <div class="input-wrapper">
-            <Mail class="field-icon" />
-            <input v-model="email" type="email" placeholder="name@email.com" />
-          </div>
-        </div>
+        <h2 class="text-3xl font-black text-indigo-600 uppercase tracking-tight">Join ProtectEd</h2>
+        <p class="text-slate-400 text-sm font-bold mt-1">Start your gamified learning journey</p>
         
-        <div class="input-group">
-          <label>Password</label>
-          <div class="input-wrapper">
-            <Lock class="field-icon" />
-            <input v-model="password" type="password" placeholder="••••••••" />
+        <transition name="fade">
+          <p v-if="error" class="text-red-600 text-xs font-bold mt-4 bg-red-50 p-3 rounded-xl w-full border border-red-100">
+            {{ error }}
+          </p>
+        </transition>
+      </div>
+
+      <div class="space-y-4">
+        <div class="relative">
+          <User class="absolute left-5 top-4.5 w-4 h-4 text-slate-400" />
+          <input v-model="username" type="text" placeholder="Full Name" 
+            class="w-full bg-slate-50 border-2 border-transparent focus:border-indigo-100 focus:bg-white rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-700 outline-none transition-all" />
+        </div>
+
+        <div class="relative">
+          <Mail class="absolute left-5 top-4.5 w-4 h-4 text-slate-400" />
+          <input v-model="email" type="email" placeholder="Email Address" 
+            class="w-full bg-slate-50 border-2 border-transparent focus:border-indigo-100 focus:bg-white rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-700 outline-none transition-all" />
+        </div>
+
+        <div class="relative">
+          <Lock class="absolute left-5 top-4.5 w-4 h-4 text-slate-400" />
+          <input v-model="password" type="password" placeholder="Password" 
+            class="w-full bg-slate-50 border-2 border-transparent focus:border-indigo-100 focus:bg-white rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-700 outline-none transition-all" />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Select Your Role</label>
+          <div class="flex bg-slate-100 p-1.5 rounded-2xl">
+            <button @click="role = 'learner'" 
+              :class="role === 'learner' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400'" 
+              class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all">Learner</button>
+            <button @click="role = 'facilitator'" 
+              :class="role === 'facilitator' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400'" 
+              class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all">Facilitator</button>
           </div>
         </div>
 
-        <button @click="handleRegister" class="btn-auth-pink pulse-hover-pink">
-          <span>Join Now</span>
-          <ArrowRight class="w-5 h-5" />
+        <button @click="handleRegister" :disabled="loading"
+          class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white py-4 rounded-2xl font-black uppercase text-xs flex items-center justify-center space-x-3 shadow-lg transition-all disabled:opacity-50">
+          <span v-if="!loading">Sign Up</span>
+          <span v-else>Processing...</span>
+          <ArrowRight v-if="!loading" class="w-4 h-4" />
         </button>
-      </div>
 
-      <div class="card-footer">
-        <p>Already have an account? <router-link to="/login">Sign In</router-link></p>
+        <p class="text-center text-[10px] font-bold text-slate-400 uppercase pt-2">
+          Already have an account? <router-link to="/login" class="text-indigo-600">Sign In</router-link>
+        </p>
       </div>
     </div>
 
     <transition name="pop">
-      <div v-if="success" class="success-modal">
-        <div class="success-box">
-          <div class="check-ring-pink">
-            <CheckCircle class="check-icon pulse-glow" />
+      <div v-if="showModal" class="fixed inset-0 bg-indigo-900/60 backdrop-blur-sm flex items-center justify-center p-6 z-50">
+        <div class="bg-white rounded-[48px] p-12 max-w-sm w-full text-center shadow-2xl">
+          <div class="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle class="w-16 h-16 text-emerald-500" />
           </div>
-          <h3>Ready to Play!</h3>
-          <p>Redirecting to login...</p>
+          <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Check Email!</h3>
+          <p class="text-slate-500 font-bold text-sm mt-4 mb-8 leading-relaxed">
+            We've sent a verification link to <br/><span class="text-indigo-600">{{ email }}</span>
+          </p>
+          <button @click="router.push('/login')" 
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-black uppercase text-xs shadow-lg transition-colors">
+            Back to Login
+          </button>
         </div>
       </div>
     </transition>
@@ -95,207 +124,12 @@ const handleRegister = () => {
 </template>
 
 <style scoped>
-.auth-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-  font-family: 'Poppins', sans-serif;
-  color: white;
-  background: #020617;
-}
+.animate-bounce-slow { animation: bounce 3s infinite; }
+@keyframes bounce { 0%, 100% { transform: translateY(-5%); } 50% { transform: translateY(0); } }
 
-/* --- Moving Gradient Background --- */
-.gradient-bg {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(-45deg, #170216, #4c0519, #831843, #020617);
-  background-size: 400% 400%;
-  animation: gradient-shift 15s ease infinite;
-  z-index: 0;
-}
-
-@keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-/* --- Floating Bubbles --- */
-.bubbles-container {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.bubble {
-  position: absolute;
-  bottom: -100px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 50%;
-  animation: float-up 12s infinite ease-in;
-}
-
-.bubble:nth-child(even) { background: rgba(236, 72, 153, 0.1); }
-.bubble:nth-child(1) { width: 40px; height: 40px; left: 15%; animation-duration: 10s; }
-.bubble:nth-child(2) { width: 25px; height: 25px; left: 40%; animation-duration: 14s; animation-delay: 2s; }
-.bubble:nth-child(3) { width: 55px; height: 55px; left: 60%; animation-duration: 18s; }
-.bubble:nth-child(4) { width: 35px; height: 35px; left: 80%; animation-duration: 12s; animation-delay: 4s; }
-
-@keyframes float-up {
-  0% { transform: translateY(0) scale(1); opacity: 0; }
-  20% { opacity: 0.4; }
-  100% { transform: translateY(-120vh) scale(1.5); opacity: 0; }
-}
-
-/* --- Decorative Glow Circles --- */
-.circle { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.15; z-index: 1; animation: move 10s infinite alternate; }
-.pink-glow { width: 400px; height: 400px; background: #ec4899; top: -50px; right: -50px; }
-.blue-glow { width: 300px; height: 300px; background: #3b82f6; bottom: -50px; left: -50px; }
-
-@keyframes move { from { transform: translate(0,0); } to { transform: translate(-30px, 30px); } }
-
-/* --- UI Card --- */
-.auth-card {
-  position: relative;
-  z-index: 10;
-  width: 100%;
-  max-width: 440px;
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(20px);
-  padding: 40px;
-  border-radius: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  transition: all 0.5s ease;
-  text-align: center;
-}
-
-.back-link {
-  position: absolute;
-  top: 40px;
-  left: 40px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  z-index: 20;
-}
-
-.logo-box-pink {
-  width: 64px;
-  height: 64px;
-  background: #ec4899;
-  border-radius: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-  box-shadow: 0 10px 20px -5px rgba(236, 72, 153, 0.5);
-}
-.logo-icon { color: white; width: 32px; height: 32px; }
-
-h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; }
-.card-header p { color: #b894af; font-size: 14px; margin-bottom: 30px; }
-
-/* --- Inputs --- */
-.input-group { margin-bottom: 20px; text-align: left; }
-.input-group label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 8px; margin-left: 4px; }
-.input-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #020617;
-  padding: 16px 20px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: 0.3s;
-}
-.input-wrapper:focus-within { border-color: #ec4899; box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.1); }
-.field-icon { width: 18px; color: #475569; }
-input { background: none; border: none; color: white; width: 100%; outline: none; font-size: 15px; }
-
-/* --- Button --- */
-.btn-auth-pink {
-  width: 100%;
-  padding: 16px;
-  background: #ec4899;
-  border: none;
-  border-radius: 16px;
-  color: white;
-  font-weight: 700;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  cursor: pointer;
-  transition: 0.3s;
-  margin-top: 10px;
-}
-.btn-auth-pink:hover { background: #db2777; transform: translateY(-2px); }
-
-.pulse-hover-pink:hover {
-  animation: pulse-pink 1.5s infinite;
-}
-
-@keyframes pulse-pink {
-  0% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7); }
-  70% { box-shadow: 0 0 0 10px rgba(236, 72, 153, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
-}
-
-.card-footer { margin-top: 24px; text-align: center; font-size: 14px; color: #64748b; }
-.card-footer a { color: #ec4899; text-decoration: none; font-weight: 600; }
-
-/* --- Success Message --- */
-.success-modal {
-  position: absolute;
-  inset: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(2, 6, 23, 0.4);
-  backdrop-filter: blur(4px);
-}
-.success-box {
-  background: #0f172a;
-  padding: 48px;
-  border-radius: 32px;
-  text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-}
-.check-ring-pink {
-  width: 80px;
-  height: 80px;
-  background: rgba(236, 72, 153, 0.1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 24px;
-  border: 2px solid #ec4899;
-}
-.check-icon { color: #ec4899; width: 40px; height: 40px; }
-.success-box h3 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
-
-.pulse-glow { animation: glow 2s infinite; }
-@keyframes glow {
-  0% { filter: drop-shadow(0 0 5px rgba(236, 72, 153, 0.4)); }
-  50% { filter: drop-shadow(0 0 20px rgba(236, 72, 153, 0.8)); }
-  100% { filter: drop-shadow(0 0 5px rgba(236, 72, 153, 0.4)); }
-}
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 
 .pop-enter-active { animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
-@keyframes pop-in { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes pop-in { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 </style>
