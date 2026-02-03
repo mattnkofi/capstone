@@ -20,9 +20,6 @@ export default {
   login(credentials) {
     return apiClient.post('/auth/login', credentials);
   },
-  getLearningPath(userId) {
-    return apiClient.get(`/learner/path/${userId}`);
-  },
   getResources() {
     return apiClient.get('/resources');
   },

@@ -6,7 +6,6 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const app = express();
@@ -23,7 +22,19 @@ const db = mysql.createPool({
   connectionLimit: 10
 }).promise();
 
-// --- ROLE MIDDLEWARE ---
+// --- UPLOAD CONFIGURATION ---
+const uploadDir = path.join(__dirname, 'uploads/resources');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+});
+const upload = multer({ storage });
+
+// --- AUTH MIDDLEWARE ---
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -36,27 +47,41 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-const checkRole = (roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ error: "Access Denied: Insufficient Permissions" });
-    }
-    next();
-  };
+const checkRole = (roles) => (req, res, next) => {
+  if (!roles.includes(req.user.role)) return res.status(403).json({ error: "Access Denied" });
+  next();
 };
 
-// --- AUTH ROUTES ---
-app.post('/api/auth/register', async (req, res) => {
-  const { username, email, password, role } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const token = jwt.sign({ email }, process.env.JWT_SECRET);
+// --- RESOURCE ROUTES ---
+app.get('/api/resources', async (req, res) => {
   try {
-    const sql = "INSERT INTO users (username, email, password, role, is_verified) VALUES (?, ?, ?, ?, 0)";
-    await db.query(sql, [username, email, hashedPassword, role || 'learner']);
-    res.json({ message: "Registered! Check email for verification." });
-  } catch (err) { res.status(500).json({ error: "Registration failed." }); }
+    const [resources] = await db.query("SELECT * FROM resources ORDER BY id DESC");
+    res.json(resources);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch resources" });
+  }
 });
 
+app.post('/api/resources/upload-with-options', authenticateToken, checkRole(['admin', 'facilitator']), upload.single('file'), async (req, res) => {
+  try {
+    const { title, category, resource_type, has_quiz, quiz_id } = req.body;
+    const content_url = req.file ? `http://localhost:3000/uploads/resources/${req.file.filename}` : null;
+
+    // Convert strings from FormData to MySQL compatible types
+    const quizBool = (has_quiz === 'true' || has_quiz === true) ? 1 : 0;
+    const finalQuizId = (quiz_id && quiz_id !== 'null') ? parseInt(quiz_id) : null;
+
+    const sql = "INSERT INTO resources (title, category, resource_type, content_url, has_quiz, quiz_id) VALUES (?, ?, ?, ?, ?, ?)";
+    await db.query(sql, [title, category, resource_type, content_url, quizBool, finalQuizId]);
+    
+    res.json({ message: "Resource uploaded successfully!" });
+  } catch (err) {
+    console.error("Upload Error:", err);
+    res.status(500).json({ error: "Check if columns content_url, has_quiz, and quiz_id exist in your DB." });
+  }
+});
+
+// --- AUTH ROUTES ---
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
   const [users] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
@@ -64,33 +89,8 @@ app.post('/api/auth/login', async (req, res) => {
   const user = users[0];
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
-  
   const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '2h' });
   res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
 });
 
-// --- ROLE-BASED ACCESS ENDPOINTS ---
-
-// 1. LEARNER ACCESS (5+ Features)
-app.get('/api/learner/dashboard', authenticateToken, checkRole(['learner']), (req, res) => res.json({ msg: "Learner Dashboard Access" }));
-app.get('/api/learner/modules', authenticateToken, checkRole(['learner']), (req, res) => res.json({ msg: "Accessing Modules" }));
-app.get('/api/learner/quizzes', authenticateToken, checkRole(['learner']), (req, res) => res.json({ msg: "Taking Quizzes" }));
-app.get('/api/learner/rewards', authenticateToken, checkRole(['learner']), (req, res) => res.json({ msg: "Viewing Rewards" }));
-app.get('/api/learner/stress-meter', authenticateToken, checkRole(['learner']), (req, res) => res.json({ msg: "Accessing Stress Meter" }));
-
-// 2. FACILITATOR ACCESS (5+ Features)
-app.get('/api/facilitator/analytics', authenticateToken, checkRole(['facilitator']), (req, res) => res.json({ msg: "Viewing Class Analytics" }));
-app.get('/api/facilitator/students', authenticateToken, checkRole(['facilitator']), (req, res) => res.json({ msg: "Managing Student List" }));
-app.post('/api/facilitator/assign', authenticateToken, checkRole(['facilitator']), (req, res) => res.json({ msg: "Assigning Modules" }));
-app.get('/api/facilitator/reports', authenticateToken, checkRole(['facilitator']), (req, res) => res.json({ msg: "Generating Progress Reports" }));
-app.post('/api/facilitator/feedback', authenticateToken, checkRole(['facilitator']), (req, res) => res.json({ msg: "Sending Feedback to Learners" }));
-
-// 3. ADMIN ACCESS (5+ Features)
-app.get('/api/admin/users', authenticateToken, checkRole(['admin']), (req, res) => res.json({ msg: "Managing System Users" }));
-app.post('/api/admin/content', authenticateToken, checkRole(['admin']), (req, res) => res.json({ msg: "Adding System Content" }));
-app.get('/api/admin/alerts', authenticateToken, checkRole(['admin']), (req, res) => res.json({ msg: "Reviewing AI Alerts" }));
-app.delete('/api/admin/remove', authenticateToken, checkRole(['admin']), (req, res) => res.json({ msg: "Deleting Records" }));
-app.put('/api/admin/settings', authenticateToken, checkRole(['admin']), (req, res) => res.json({ msg: "Updating System Settings" }));
-
-const PORT = 3000;
-app.listen(PORT, () => console.log(`🚀 Role-Based Server on port ${PORT}`));
+app.listen(3000, () => console.log('🚀 ProtectEd Server Active on port 3000'));
