@@ -23,34 +23,176 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen w-full flex items-center justify-center bg-[#F0F4FF] p-6">
-    <div class="w-full max-w-md bg-white rounded-[48px] shadow-2xl p-10 border-b-8 border-slate-200">
-      <div class="flex flex-col items-center text-center mb-10">
-        <div class="bg-cyan-400 p-4 rounded-[24px] shadow-lg mb-4">
-          <ShieldCheck class="w-10 h-10 text-indigo-600" />
+  <div class="auth-page">
+    <div class="gradient-bg"></div>
+
+    <div class="bubbles-container">
+      <div v-for="n in 12" :key="n" class="bubble"></div>
+    </div>
+
+    <div class="auth-card">
+      <div class="card-header">
+        <div class="icon-box">
+          <ShieldCheck class="w-10 h-10 text-white" />
         </div>
-        <h2 class="text-3xl font-black text-indigo-600 uppercase">Login</h2>
-        <p v-if="error" class="text-red-500 text-xs font-bold mt-4 bg-red-50 p-2 rounded-lg w-full">{{ error }}</p>
+        <h2>Welcome Back</h2>
+        <p>Sign in to your ProtectEd account</p>
+        <transition name="fade">
+          <p v-if="error" class="error-msg">{{ error }}</p>
+        </transition>
       </div>
 
-      <div class="space-y-6">
-        <div class="relative">
-          <Mail class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
-          <input v-model="email" type="email" placeholder="Email" class="w-full bg-slate-50 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-cyan-400 transition" />
+      <div class="form-body">
+        <div class="input-group">
+          <Mail class="field-icon" />
+          <input v-model="email" type="email" placeholder="Email Address" />
         </div>
         
-        <div class="relative">
-          <Lock class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
-          <input v-model="password" type="password" placeholder="Password" class="w-full bg-slate-50 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-cyan-400 transition" />
+        <div class="input-group">
+          <Lock class="field-icon" />
+          <input v-model="password" type="password" placeholder="Password" />
         </div>
 
-        <button @click="handleLogin" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black uppercase text-xs flex items-center justify-center space-x-3 shadow-lg">
-          <span>Enter Portal</span> <ArrowRight class="w-4 h-4" />
+        <button @click="handleLogin" class="submit-btn pulse-hover">
+          <span>Enter Portal</span>
+          <ArrowRight class="w-5 h-5" />
         </button>
-        <p class="text-center text-[10px] font-bold text-slate-400 mt-4">
-          No account? <router-link to="/register" class="text-indigo-600 underline">Register here</router-link>
+
+        <p class="footer-text">
+          New here? <router-link to="/register">Create an account</router-link>
         </p>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Poppins', sans-serif;
+  color: white;
+}
+
+/* --- Moving Gradient Background --- */
+.gradient-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(-45deg, #020617, #0f172a, #1e1b4b, #312e81);
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+  z-index: -2;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* --- Floating Bubbles --- */
+.bubbles-container {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.bubble {
+  position: absolute;
+  bottom: -100px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  animation: float-up 12s infinite ease-in;
+}
+
+.bubble:nth-child(even) { background: rgba(59, 130, 246, 0.1); }
+.bubble:nth-child(1) { width: 40px; height: 40px; left: 10%; animation-duration: 10s; }
+.bubble:nth-child(2) { width: 20px; height: 20px; left: 25%; animation-duration: 14s; animation-delay: 2s; }
+.bubble:nth-child(3) { width: 60px; height: 60px; left: 45%; animation-duration: 18s; }
+.bubble:nth-child(4) { width: 30px; height: 30px; left: 75%; animation-duration: 12s; animation-delay: 4s; }
+
+@keyframes float-up {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  20% { opacity: 0.4; }
+  100% { transform: translateY(-120vh) scale(1.5); opacity: 0; }
+}
+
+/* --- UI Elements --- */
+.auth-card {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(20px);
+  padding: 50px;
+  border-radius: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.icon-box {
+  background: #3b82f6;
+  width: 70px;
+  height: 70px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+}
+
+h2 { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+.card-header p { color: #94a3b8; font-size: 14px; margin-bottom: 30px; }
+
+.error-msg { color: #ef4444; font-size: 12px; font-weight: 700; margin-top: 15px; background: rgba(239, 68, 68, 0.1); padding: 10px; border-radius: 12px; }
+
+.input-group {
+  background: #020617;
+  border-radius: 15px;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  transition: 0.3s;
+}
+
+.input-group:focus-within { border-color: #3b82f6; }
+.field-icon { color: #475569; width: 20px; }
+input { background: none; border: none; color: white; width: 100%; outline: none; font-size: 14px; }
+
+.submit-btn {
+  background: #3b82f6;
+  width: 100%;
+  padding: 15px;
+  border-radius: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.submit-btn:hover { background: #2563eb; transform: translateY(-2px); }
+
+.pulse-hover:hover { animation: pulse-shadow 1.5s infinite; }
+@keyframes pulse-shadow {
+  0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}
+
+.footer-text { margin-top: 25px; font-size: 13px; color: #64748b; }
+.footer-text a { color: #3b82f6; font-weight: 700; text-decoration: none; }
+</style>
