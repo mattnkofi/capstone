@@ -104,4 +104,25 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+app.put('/api/auth/update-profile', async (req, res) => {
+  const { id, username, email } = req.body;
+  if (!id) return res.status(400).json({ error: "User ID is required" });
+
+  try {
+    const [result] = await db.query(
+      "UPDATE users SET username = ?, email = ? WHERE id = ?",
+      [username, email, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "User not found in database" });
+    }
+
+    res.json({ message: "Profile updated successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Update failed" });
+  }
+});
+
 app.listen(3000, () => console.log('🚀 ProtectEd Server Active on port 3000'));

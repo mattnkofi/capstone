@@ -6,41 +6,33 @@ import {
   ShieldAlert, BrainCircuit, FileSearch, Settings, 
   LogOut, ChevronLeft, ChevronRight, Bell, Trophy,
   Activity, ClipboardCheck, Database, Fingerprint, 
-  SearchCode, BarChart3, Milestone
+  SearchCode, BarChart3, Milestone, User
 } from 'lucide-vue-next'
 
 const router = useRouter()
 const isCollapsed = ref(false)
 const user = ref(JSON.parse(localStorage.getItem('user')) || { role: 'learner', username: 'Matt Martin' })
 
-// Navigation Configuration derived from approved functional requirements 
 const navigation = [
-  // --- Common / Shared Dashboards ---
   { name: 'Main Dashboard', icon: LayoutDashboard, path: '/dashboard', roles: ['learner', 'facilitator', 'admin'] },
-  { name: 'Resource Library', icon: BookOpen, path: '/resources', roles: ['learner', 'facilitator', 'admin'] }, // Approved for all 
-
-  // --- Learner Designated (7 Items) ---
-  { name: 'Learning Path', icon: Map, path: '/learning-path', roles: ['learner'] }, // Approved 
-  { name: 'Gamified Modules', icon: Activity, path: '/modules', roles: ['learner'] }, // Approved 
-  { name: 'Stress Meter', icon: HeartPulse, path: '/stress-meter', roles: ['learner'] }, // Panel Suggestion 
-  { name: 'Achievements', icon: Trophy, path: '/rewards', roles: ['learner'] }, // Approved 
-  { name: 'My Milestones', icon: Milestone, path: '/milestones', roles: ['learner'] }, // Approved 
-
-  // --- Facilitator Designated (7 Items) ---
-  { name: 'Class Analytics', icon: BrainCircuit, path: '/analytics', roles: ['facilitator', 'admin'] }, // Approved 
-  { name: 'Student Progress', icon: FileSearch, path: '/student-logs', roles: ['facilitator', 'admin'] }, // Approved 
-  { name: 'Early Alerts', icon: Bell, path: '/alerts', roles: ['facilitator', 'admin'], critical: true }, // Approved 
-  { name: 'Risk Indicators', icon: ShieldAlert, path: '/risk-patterns', roles: ['facilitator'] }, // Approved 
-  { name: 'Progress Reports', icon: BarChart3, path: '/facilitator-reports', roles: ['facilitator'] }, // Approved 
-
-  // --- Admin Designated (7 Items) ---
-  { name: 'User Management', icon: Users, path: '/management', roles: ['admin'] }, // Approved 
-  { name: 'System Security', icon: Fingerprint, path: '/security', roles: ['admin'] }, // Approved 
-  { name: 'Content Approval', icon: ClipboardCheck, path: '/approvals', roles: ['admin'] }, // Approved 
-  { name: 'AI Config', icon: SearchCode, path: '/ai-settings', roles: ['admin'] }, // Approved 
-  { name: 'Game Settings', icon: Trophy, path: '/game-settings', roles: ['admin'] }, // Approved 
-  { name: 'System Audit', icon: Database, path: '/audit-logs', roles: ['admin'] }, // Approved 
-  { name: 'Settings', icon: Settings, path: '/settings', roles: ['admin'] } // Approved 
+  { name: 'Resource Library', icon: BookOpen, path: '/resources', roles: ['learner', 'facilitator', 'admin'] },
+  { name: 'Learning Path', icon: Map, path: '/learning-path', roles: ['learner'] },
+  { name: 'Gamified Modules', icon: Activity, path: '/modules', roles: ['learner'] },
+  { name: 'Stress Meter', icon: HeartPulse, path: '/stress-meter', roles: ['learner'] },
+  { name: 'Achievements', icon: Trophy, path: '/rewards', roles: ['learner'] },
+  { name: 'My Milestones', icon: Milestone, path: '/milestones', roles: ['learner'] },
+  { name: 'Class Analytics', icon: BrainCircuit, path: '/analytics', roles: ['facilitator', 'admin'] },
+  { name: 'Student Progress', icon: FileSearch, path: '/student-logs', roles: ['facilitator', 'admin'] },
+  { name: 'Early Alerts', icon: Bell, path: '/alerts', roles: ['facilitator', 'admin'], critical: true },
+  { name: 'Risk Indicators', icon: ShieldAlert, path: '/risk-patterns', roles: ['facilitator'] },
+  { name: 'Progress Reports', icon: BarChart3, path: '/facilitator-reports', roles: ['facilitator'] },
+  { name: 'User Management', icon: Users, path: '/management', roles: ['admin'] },
+  { name: 'System Security', icon: Fingerprint, path: '/security', roles: ['admin'] },
+  { name: 'Content Approval', icon: ClipboardCheck, path: '/approvals', roles: ['admin'] },
+  { name: 'AI Config', icon: SearchCode, path: '/ai-settings', roles: ['admin'] },
+  { name: 'Game Settings', icon: Trophy, path: '/game-settings', roles: ['admin'] },
+  { name: 'System Audit', icon: Database, path: '/audit-logs', roles: ['admin'] },
+  { name: 'Settings', icon: Settings, path: '/settings', roles: ['admin'] }
 ]
 
 const filteredNav = computed(() => {
@@ -80,24 +72,28 @@ const handleLogout = () => {
           item.critical ? 'border-l-4 border-l-pink-600' : ''
         ]">
           <div v-if="isActive" class="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent"></div>
-          
           <component :is="item.icon" size="20" :class="isActive ? 'text-pink-500' : 'group-hover:text-blue-500'" class="transition-colors" />
           <span v-if="!isCollapsed" class="relative z-10 text-[9px]">{{ item.name }}</span>
-          
           <div v-if="isActive && !isCollapsed" class="ml-auto w-1.5 h-1.5 bg-pink-500 rounded-full shadow-[0_0_10px_#ec4899]"></div>
         </div>
       </router-link>
     </nav>
 
-    <div class="pt-8 mt-4 border-t border-white/5">
-      <div v-if="!isCollapsed" class="mb-6 px-5 py-4 bg-white/5 rounded-2xl border border-white/5 shadow-inner">
-        <p class="text-[8px] font-black text-blue-500 uppercase tracking-[0.5em] mb-1 italic">Mode: {{ user.role }}</p>
-        <p class="text-[10px] font-bold text-white truncate uppercase">{{ user.username }}</p>
+    <div class="pt-8 mt-4 border-t border-white/5 space-y-2">
+      <div class="flex items-center gap-2">
+        <router-link to="/profile" class="flex-1">
+          <div class="flex items-center justify-center p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-blue-500/50 transition-all group">
+            <User size="20" class="text-slate-500 group-hover:text-blue-500" />
+            <span v-if="!isCollapsed" class="ml-4 text-[9px] font-black text-white uppercase tracking-widest">Profile</span>
+          </div>
+        </router-link>
+        <button @click="handleLogout" class="p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-pink-500/50 transition-all group">
+          <LogOut size="20" class="text-slate-500 group-hover:text-pink-500 group-hover:-translate-x-1 transition-transform" />
+        </button>
       </div>
-      <button @click="handleLogout" class="flex items-center gap-5 p-5 text-slate-600 font-bold text-[10px] tracking-[0.5em] hover:text-red-500 transition-all uppercase w-full group">
-        <LogOut size="20" class="group-hover:-translate-x-1 transition-transform" />
-        <span v-if="!isCollapsed">Log Out</span>
-      </button>
+      <div v-if="!isCollapsed" class="px-5 py-2">
+        <p class="text-[7px] font-black text-blue-500 uppercase tracking-[0.5em] italic">Operator: {{ user.username }}</p>
+      </div>
     </div>
   </aside>
 </template>

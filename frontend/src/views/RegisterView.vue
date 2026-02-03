@@ -39,82 +39,77 @@ const handleRegister = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen w-full flex items-center justify-center bg-[#F0F4FF] p-6 relative font-sans">
-    <router-link to="/" class="absolute top-10 left-10 flex items-center gap-2 text-slate-400 font-black uppercase text-[10px] hover:text-indigo-600 transition-colors">
+  <div class="auth-page">
+    <div class="gradient-bg"></div>
+
+    <div class="bubbles-container">
+      <div v-for="n in 12" :key="n" class="bubble"></div>
+    </div>
+
+    <router-link to="/" class="back-link">
       <ChevronLeft class="w-4 h-4" /> Back to Home
     </router-link>
 
-    <div class="w-full max-w-md bg-white rounded-[48px] shadow-2xl p-10 border-b-8 border-slate-200">
-      <div class="flex flex-col items-center text-center mb-8">
-        <div class="bg-cyan-400 p-4 rounded-[24px] shadow-lg mb-4 animate-bounce-slow">
-          <ShieldPlus class="w-10 h-10 text-indigo-600" />
+    <div class="auth-card">
+      <div class="card-header">
+        <div class="icon-box">
+          <ShieldPlus class="w-10 h-10 text-white" />
         </div>
-        <h2 class="text-3xl font-black text-indigo-600 uppercase tracking-tight">Join ProtectEd</h2>
-        <p class="text-slate-400 text-sm font-bold mt-1">Start your gamified learning journey</p>
+        <h2>Join ProtectEd</h2>
+        <p>Start your gamified learning journey</p>
         
         <transition name="fade">
-          <p v-if="error" class="text-red-600 text-xs font-bold mt-4 bg-red-50 p-3 rounded-xl w-full border border-red-100">
-            {{ error }}
-          </p>
+          <p v-if="error" class="error-msg">{{ error }}</p>
         </transition>
       </div>
 
-      <div class="space-y-4">
-        <div class="relative">
-          <User class="absolute left-5 top-4.5 w-4 h-4 text-slate-400" />
-          <input v-model="username" type="text" placeholder="Full Name" 
-            class="w-full bg-slate-50 border-2 border-transparent focus:border-indigo-100 focus:bg-white rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-700 outline-none transition-all" />
+      <div class="form-body">
+        <div class="input-group">
+          <User class="field-icon" />
+          <input v-model="username" type="text" placeholder="Full Name" />
         </div>
 
-        <div class="relative">
-          <Mail class="absolute left-5 top-4.5 w-4 h-4 text-slate-400" />
-          <input v-model="email" type="email" placeholder="Email Address" 
-            class="w-full bg-slate-50 border-2 border-transparent focus:border-indigo-100 focus:bg-white rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-700 outline-none transition-all" />
+        <div class="input-group">
+          <Mail class="field-icon" />
+          <input v-model="email" type="email" placeholder="Email Address" />
         </div>
 
-        <div class="relative">
-          <Lock class="absolute left-5 top-4.5 w-4 h-4 text-slate-400" />
-          <input v-model="password" type="password" placeholder="Password" 
-            class="w-full bg-slate-50 border-2 border-transparent focus:border-indigo-100 focus:bg-white rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-700 outline-none transition-all" />
+        <div class="input-group">
+          <Lock class="field-icon" />
+          <input v-model="password" type="password" placeholder="Password" />
         </div>
 
-        <div class="space-y-2">
-          <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Select Your Role</label>
-          <div class="flex bg-slate-100 p-1.5 rounded-2xl">
+        <div class="role-selector-container">
+          <label class="role-label">Select Your Role</label>
+          <div class="role-toggle">
             <button @click="role = 'learner'" 
-              :class="role === 'learner' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400'" 
-              class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all">Learner</button>
+              :class="role === 'learner' ? 'active' : ''">Learner</button>
             <button @click="role = 'facilitator'" 
-              :class="role === 'facilitator' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400'" 
-              class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all">Facilitator</button>
+              :class="role === 'facilitator' ? 'active' : ''">Facilitator</button>
           </div>
         </div>
 
-        <button @click="handleRegister" :disabled="loading"
-          class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white py-4 rounded-2xl font-black uppercase text-xs flex items-center justify-center space-x-3 shadow-lg transition-all disabled:opacity-50">
-          <span v-if="!loading">Sign Up</span>
+        <button @click="handleRegister" class="submit-btn pulse-hover" :disabled="loading">
+          <span v-if="!loading">Create Account</span>
           <span v-else>Processing...</span>
-          <ArrowRight v-if="!loading" class="w-4 h-4" />
+          <ArrowRight v-if="!loading" class="w-5 h-5" />
         </button>
 
-        <p class="text-center text-[10px] font-bold text-slate-400 uppercase pt-2">
-          Already have an account? <router-link to="/login" class="text-indigo-600">Sign In</router-link>
+        <p class="footer-text">
+          Already have an account? <router-link to="/login">Login In</router-link>
         </p>
       </div>
     </div>
 
     <transition name="pop">
-      <div v-if="showModal" class="fixed inset-0 bg-indigo-900/60 backdrop-blur-sm flex items-center justify-center p-6 z-50">
-        <div class="bg-white rounded-[48px] p-12 max-w-sm w-full text-center shadow-2xl">
-          <div class="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+      <div v-if="showModal" class="modal-overlay">
+        <div class="modal-card">
+          <div class="modal-icon-box">
             <CheckCircle class="w-16 h-16 text-emerald-500" />
           </div>
-          <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Check Email!</h3>
-          <p class="text-slate-500 font-bold text-sm mt-4 mb-8 leading-relaxed">
-            We've sent a verification link to <br/><span class="text-indigo-600">{{ email }}</span>
-          </p>
-          <button @click="router.push('/login')" 
-            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-black uppercase text-xs shadow-lg transition-colors">
+          <h3>Check Email!</h3>
+          <p>We've sent a verification link to <br/><span>{{ email }}</span></p>
+          <button @click="router.push('/login')" class="submit-btn">
             Back to Login
           </button>
         </div>
@@ -124,12 +119,176 @@ const handleRegister = async () => {
 </template>
 
 <style scoped>
-.animate-bounce-slow { animation: bounce 3s infinite; }
-@keyframes bounce { 0%, 100% { transform: translateY(-5%); } 50% { transform: translateY(0); } }
+/* Inherited styles from your LoginView reference */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Poppins', sans-serif;
+  color: white;
+}
+
+.gradient-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(-45deg, #020617, #0f172a, #1e1b4b, #312e81);
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+  z-index: -2;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.bubbles-container {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.bubble {
+  position: absolute;
+  bottom: -100px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  animation: float-up 12s infinite ease-in;
+}
+
+@keyframes float-up {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  20% { opacity: 0.4; }
+  100% { transform: translateY(-120vh) scale(1.5); opacity: 0; }
+}
+
+.auth-card {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(20px);
+  padding: 40px;
+  border-radius: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
+.icon-box {
+  background: #3b82f6;
+  width: 70px;
+  height: 70px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+}
+
+h2 { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+.card-header p { color: #94a3b8; font-size: 14px; margin-bottom: 25px; }
+
+.error-msg { 
+  color: #ef4444; 
+  font-size: 12px; 
+  font-weight: 700; 
+  margin-top: 15px; 
+  background: rgba(239, 68, 68, 0.1); 
+  padding: 10px; 
+  border-radius: 12px; 
+}
+
+.input-group {
+  background: #020617;
+  border-radius: 15px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+  border: 1px solid transparent;
+  transition: 0.3s;
+}
+
+.input-group:focus-within { border-color: #3b82f6; }
+.field-icon { color: #475569; width: 20px; }
+input { background: none; border: none; color: white; width: 100%; outline: none; font-size: 14px; }
+
+/* Role Selector specific styling */
+.role-selector-container { margin-bottom: 20px; text-align: left; }
+.role-label { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #475569; margin-left: 10px; display: block; margin-bottom: 8px; }
+.role-toggle { background: #020617; padding: 6px; border-radius: 15px; display: flex; gap: 5px; }
+.role-toggle button { flex: 1; padding: 10px; border-radius: 10px; border: none; background: transparent; color: #475569; font-weight: 800; font-size: 11px; text-transform: uppercase; cursor: pointer; transition: 0.3s; }
+.role-toggle button.active { background: rgba(255, 255, 255, 0.05); color: #3b82f6; }
+
+.submit-btn {
+  background: #3b82f6;
+  width: 100%;
+  padding: 15px;
+  border-radius: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.submit-btn:hover { background: #2563eb; transform: translateY(-2px); }
+.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.footer-text { margin-top: 25px; font-size: 13px; color: #64748b; }
+.footer-text a { color: #3b82f6; font-weight: 700; text-decoration: none; }
+
+.back-link { 
+  position: absolute; 
+  top: 40px; 
+  left: 40px; 
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+  color: #64748b; 
+  font-weight: 800; 
+  text-transform: uppercase; 
+  font-size: 10px; 
+  text-decoration: none; 
+  z-index: 20;
+}
+
+/* Modal styles matching glassmorphism */
+.modal-overlay {
+  fixed: inset 0;
+  background: rgba(2, 6, 23, 0.8);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.modal-card {
+  background: #0f172a;
+  padding: 40px;
+  border-radius: 40px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.modal-icon-box { margin-bottom: 20px; }
+.modal-card h3 { font-size: 24px; font-weight: 800; margin-bottom: 10px; }
+.modal-card p { font-size: 14px; color: #94a3b8; margin-bottom: 30px; }
+.modal-card span { color: #3b82f6; font-weight: 700; }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
-
-.pop-enter-active { animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
-@keyframes pop-in { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 </style>

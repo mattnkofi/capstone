@@ -28,6 +28,13 @@ const routes = [
     component: Dashboard,
     meta: { requiresAuth: true }
   },
+  // Added Profile Route
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('../views/ProfileView.vue'),
+    meta: { requiresAuth: true }
+  },
   {
     path: '/resources',
     name: 'ResourceLibrary',
@@ -61,35 +68,35 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-  path: '/learning-path',
-  name: 'LearningPath',
-  component: () => import('../components/LearningPath.vue'),
-  meta: { requiresAuth: true }
-},
-{
-  path: '/modules',
-  name: 'Modules',
-  component: () => import('../views/Dashboard.vue'), // Or your specific modules view
-  meta: { requiresAuth: true }
-},
-{
-  path: '/stress-meter',
-  name: 'StressMeter',
-  component: () => import('../components/StressMeter.vue'),
-  meta: { requiresAuth: true }
-},
-{
-  path: '/rewards',
-  name: 'Rewards',
-  component: () => import('../components/RewardSystem.vue'),
-  meta: { requiresAuth: true }
-},
-{
-  path: '/milestones',
-  name: 'Milestones',
-  component: () => import('../views/AnalyticsView.vue'), // Placeholder
-  meta: { requiresAuth: true }
-}
+    path: '/learning-path',
+    name: 'LearningPath',
+    component: () => import('../components/LearningPath.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/modules',
+    name: 'Modules',
+    component: () => import('../views/Dashboard.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/stress-meter',
+    name: 'StressMeter',
+    component: () => import('../components/StressMeter.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/rewards',
+    name: 'Rewards',
+    component: () => import('../components/RewardSystem.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/milestones',
+    name: 'Milestones',
+    component: () => import('../views/AnalyticsView.vue'),
+    meta: { requiresAuth: true }
+  }
 ]
 
 const router = createRouter({
